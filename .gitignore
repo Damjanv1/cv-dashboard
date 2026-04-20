@@ -2,3 +2,6 @@
 *.log
 .DS_Store
 Thumbs.db
+
+# Chess build artefacts (raw data + template + scripts kept local only)
+chess/
