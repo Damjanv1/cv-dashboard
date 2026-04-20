@@ -11,6 +11,8 @@
   (function(){try{var t=localStorage.getItem('cd-theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
 <style>
 :root{
   --bg:#fbfaf6;--surface:#ffffff;--surface2:#f5f3ec;--border:#e5e1d5;--border-strong:#c9c4b6;
@@ -310,13 +312,20 @@ const _charts = [];
 function mkChart(id, cfg){
   const el = document.getElementById(id);
   if (!el) return null;
-  const existing = Chart.getChart(el);
-  if (existing) existing.destroy();
-  const c = new Chart(el, cfg);
-  _charts.push(c);
-  return c;
+  try {
+    const existing = Chart.getChart(el);
+    if (existing) existing.destroy();
+    const c = new Chart(el, cfg);
+    _charts.push(c);
+    return c;
+  } catch (e) {
+    console.error('Chart error on ' + id, e);
+    return null;
+  }
 }
 function destroyAll(){ _charts.forEach(c => { try { c.destroy(); } catch(e){} }); _charts.length = 0; }
+// Safe wrapper — one render failing shouldn't nuke the rest
+function safe(name, fn, p){ try { fn(p); } catch(e){ console.error('Render error in ' + name, e); } }
 
 // ==== RENDER ALL ====
 function renderAll(){
@@ -327,22 +336,22 @@ function renderAll(){
   Chart.defaults.font.family = "'Inter', sans-serif";
   Chart.defaults.font.size = 11;
 
-  renderKPIs(p);
-  renderWLD(p);
-  renderColor(p);
-  renderSpeed(p);
-  renderCallouts(p);
-  renderRating(p);
-  renderRolling(p);
-  renderFavour(p);
-  renderEndings(p);
-  renderMating(p);
-  renderOpenings(p);
-  renderFamilies(p);
-  renderMoves(p);
-  renderMonth(p);
-  renderStreaks(p);
-  renderFirstMoves(p);
+  safe('KPIs', renderKPIs, p);
+  safe('WLD', renderWLD, p);
+  safe('Color', renderColor, p);
+  safe('Speed', renderSpeed, p);
+  safe('Callouts', renderCallouts, p);
+  safe('Rating', renderRating, p);
+  safe('Rolling', renderRolling, p);
+  safe('Favour', renderFavour, p);
+  safe('Endings', renderEndings, p);
+  safe('Mating', renderMating, p);
+  safe('Openings', renderOpenings, p);
+  safe('Families', renderFamilies, p);
+  safe('Moves', renderMoves, p);
+  safe('Month', renderMonth, p);
+  safe('Streaks', renderStreaks, p);
+  safe('FirstMoves', renderFirstMoves, p);
 }
 
 // ==== KPIs ====
@@ -481,8 +490,7 @@ function renderRolling(p){
         y: { min: 20, max: 80, grid: { color: p.border }, ticks: { color: p.muted, callback: v => v + '%' } }
       },
       plugins: { legend: { display: false },
-        tooltip: { callbacks: { title: (c) => new Date(c[0].parsed.x).toISOString().slice(0,10), label: (c) => 'Win %: ' + c.parsed.y.toFixed(1) } },
-        annotPlugin: undefined
+        tooltip: { callbacks: { title: (c) => new Date(c[0].parsed.x).toISOString().slice(0,10), label: (c) => 'Win %: ' + c.parsed.y.toFixed(1) } }
       }
     }
   });
@@ -723,43 +731,39 @@ function baseOpt(opts){
 Chart.register({
   id: 'dataLabel',
   afterDatasetsDraw(chart) {
-    const opts = chart.options;
-    if (!opts.plugins || !opts.plugins.dataLabel) return;
-    const p = palette();
-    const ctx = chart.ctx;
-    ctx.save();
-    ctx.font = "600 10.5px 'Inter', sans-serif";
-    ctx.fillStyle = p.text;
-    chart.data.datasets.forEach((ds, di) => {
-      const meta = chart.getDatasetMeta(di);
-      meta.data.forEach((bar, i) => {
-        const val = ds.data[i];
-        if (val == null || val === 0) return;
-        const isX = chart.options.indexAxis === 'y';
-        const text = (chart.options.scales.x.ticks && chart.options.scales.x.ticks.callback && isX && chart.options.scales.x.max) ? val.toFixed(1) + '%' : (typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : val);
-        if (isX) { ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('  ' + text, bar.x, bar.y); }
-        else { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(text, bar.x, bar.y - 4); }
+    try {
+      const opts = chart.options || {};
+      if (!opts.plugins || !opts.plugins.dataLabel) return;
+      if (!opts.scales || !opts.scales.x) return; // skip donuts etc.
+      const p = palette();
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = "600 10.5px 'Inter', sans-serif";
+      ctx.fillStyle = p.text;
+      const isX = opts.indexAxis === 'y';
+      const isPct = isX ? (opts.scales.x.max && opts.scales.x.max <= 100) : (opts.scales.y && opts.scales.y.max && opts.scales.y.max <= 100);
+      chart.data.datasets.forEach((ds, di) => {
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach((bar, i) => {
+          const val = ds.data[i];
+          if (val == null || val === 0) return;
+          const text = isPct ? (typeof val === 'number' ? val.toFixed(1) + '%' : val) : (typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : val);
+          if (isX) { ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('  ' + text, bar.x, bar.y); }
+          else { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(text, bar.x, bar.y - 4); }
+        });
       });
-    });
-    ctx.restore();
+      ctx.restore();
+    } catch (e) {
+      console.error('dataLabel plugin error', e);
+    }
   }
 });
 
 // ==== BOOTSTRAP ====
-// Chart.js time adapter is needed for time-series — use built-in fallback via luxon? We'll fall back if missing.
-// Without date-fns adapter, 'time' axis silently fails in some cases. Let's include via CDN only if needed.
-
 if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderAll);
   else renderAll();
 }
-</script>
-<!-- Chart.js time axis needs an adapter -->
-<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
-<script>
-// If adapter loads after initial render, force re-render once it's ready
-if (typeof luxon !== 'undefined') { setTimeout(renderAll, 50); }
 </script>
 </body>
 </html>
