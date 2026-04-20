@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Damjan Vlastelica · Data & Analytics Dashboard CV</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-sankey@0.12.1/dist/chartjs-chart-sankey.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@sgratzl/chartjs-chart-boxplot@4.2.4/build/index.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+  // Set theme as early as possible to prevent flash
+  (function(){
+    try{
+      var t = localStorage.getItem('dv-theme') || 'light';
+      if(t === 'dark') document.documentElement.setAttribute('data-theme','dark');
+    }catch(e){}
+  })();
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ═══════ LIGHT (Economist/McKinsey editorial — default) ═══════ */
+:root{
+  --bg:#fbfaf6;
+  --bg-alt:#f5f3ec;
+  --surface:#ffffff;
+  --surface2:#f5f3ec;
+  --border:#e5e1d5;
+  --border-strong:#3d3d3d;
+  --rule:#c9c4b6;
+
+  --text:#1a1a1a;
+  --text2:#555555;
+  --text3:#8a8680;
+
+  --accent:#1a3a5f;        /* editorial deep blue */
+  --accent-soft:#e7ecf2;
+  --accent2:#8b2e3f;       /* editorial burgundy / red */
+  --accent2-soft:#f5e6e6;
+  --accent3:#a67c2a;       /* muted gold */
+  --accent3-soft:#f5ecd8;
+  --accent4:#2e6157;       /* forest */
+  --accent4-soft:#e2ece8;
+  --purple:#5a4a7a;
+  --pink:#9c5b7a;
+
+  --shadow-sm:0 1px 2px rgba(10,20,40,.04);
+  --shadow:0 1px 3px rgba(10,20,40,.06),0 1px 2px rgba(10,20,40,.04);
+  --shadow-lg:0 8px 24px rgba(10,20,40,.08),0 2px 6px rgba(10,20,40,.05);
+
+  --font-serif:'Playfair Display','Source Serif 4','Georgia','Times New Roman',serif;
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono','Consolas',monospace;
+
+  --sidebar-w:240px;
+  --radius:2px;
+  --radius-lg:4px;
+}
+
+/* ═══════ DARK (tech) ═══════ */
+[data-theme="dark"]{
+  --bg:#0a0e1a;
+  --bg-alt:#13182a;
+  --surface:#131824;
+  --surface2:#1a2235;
+  --border:#252d44;
+  --border-strong:#3a4564;
+  --rule:#2e3a55;
+
+  --text:#e8eaf0;
+  --text2:#8892a4;
+  --text3:#4a5568;
+
+  --accent:#4f8ef7;
+  --accent-soft:rgba(79,142,247,.12);
+  --accent2:#e05c5c;
+  --accent2-soft:rgba(224,92,92,.12);
+  --accent3:#f59e0b;
+  --accent3-soft:rgba(245,166,35,.12);
+  --accent4:#00d4aa;
+  --accent4-soft:rgba(0,212,170,.12);
+  --purple:#a78bfa;
+  --pink:#f472b6;
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.2);
+  --shadow:0 2px 8px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.45);
+
+  --font-serif:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --radius:8px;
+  --radius-lg:12px;
+}
+
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:13.5px;line-height:1.55;-webkit-font-smoothing:antialiased;transition:background .35s ease,color .35s ease}
+[data-theme="dark"] body{font-size:13px}
+
+/* ═══════ SIDEBAR ═══════ */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);position:fixed;height:100vh;top:0;left:0;z-index:100;display:flex;flex-direction:column;overflow-y:auto;transition:background .35s,border-color .35s}
+[data-theme="dark"] .sidebar{box-shadow:none}
+.sb-header{padding:28px 22px 22px;border-bottom:1px solid var(--border);position:relative}
+.sb-header::after{content:'';position:absolute;left:22px;bottom:-1px;width:32px;height:2px;background:var(--accent2)}
+[data-theme="dark"] .sb-header::after{display:none}
+.sb-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent4));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;margin-bottom:14px;letter-spacing:-0.5px;overflow:hidden;position:relative;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--border),var(--shadow-lg)}
+.sb-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.sb-avatar .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+
+.sb-name{font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--text);line-height:1.15;letter-spacing:-0.3px}
+[data-theme="dark"] .sb-name{font-family:var(--font-sans);font-size:15px;font-weight:700}
+.sb-role{font-size:10px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-top:6px}
+[data-theme="dark"] .sb-role{color:var(--accent)}
+.sb-location{font-size:11px;color:var(--text3);margin-top:6px;font-style:italic}
+[data-theme="dark"] .sb-location{font-style:normal}
+
+.sb-nav{padding:18px 12px;flex:1}
+.nav-section-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:700;padding:12px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:12.5px;font-weight:500;transition:all .18s;margin-bottom:1px;user-select:none;border-left:2px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+[data-theme="dark"] .nav-item{border-left:none;border-radius:7px}
+[data-theme="dark"] .nav-item.active{border-left:none}
+.nav-icon{width:15px;font-size:13px;flex-shrink:0;text-align:center;opacity:.7}
+.nav-item.active .nav-icon{opacity:1}
+
+.sb-contact{padding:16px 22px;border-top:1px solid var(--border)}
+.contact-row{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:11.5px;color:var(--text2)}
+.contact-row:last-child{margin-bottom:0}
+.contact-icon{font-size:12px;width:14px;flex-shrink:0;opacity:.7}
+
+/* ═══════ MAIN ═══════ */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:90;gap:12px;transition:background .35s,border-color .35s}
+.topbar-title{font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--text);white-space:nowrap;letter-spacing:-0.3px}
+[data-theme="dark"] .topbar-title{font-family:var(--font-sans);font-size:14px;font-weight:700}
+.topbar-sub{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-top:2px;font-weight:600}
+[data-theme="dark"] .topbar-sub{display:none}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--accent4);display:inline-block;animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.badge{background:var(--accent-soft);color:var(--accent);padding:4px 11px;border-radius:var(--radius);font-size:10px;font-weight:600;border:1px solid var(--border);letter-spacing:.5px}
+[data-theme="dark"] .badge{border-color:rgba(79,142,247,.25);border-radius:20px}
+
+/* Theme toggle */
+.theme-toggle{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);padding:5px 11px 5px 8px;border-radius:var(--radius);font-size:11px;color:var(--text2);cursor:pointer;font-weight:600;transition:all .2s;letter-spacing:.3px;font-family:var(--font-sans)}
+.theme-toggle:hover{background:var(--bg-alt);color:var(--text);border-color:var(--border-strong)}
+.theme-toggle .t-icon{font-size:13px;line-height:1}
+[data-theme="dark"] .theme-toggle{border-radius:20px}
+
+.content{padding:32px 32px 40px;flex:1;max-width:1400px}
+[data-theme="dark"] .content{padding:22px 26px}
+
+/* ═══════ SECTIONS ═══════ */
+.section{display:none;animation:fadein .3s ease}
+.section.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Section kicker title */
+.kicker{font-family:var(--font-sans);font-size:10px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:2.5px;margin-bottom:8px}
+[data-theme="dark"] .kicker{color:var(--accent);letter-spacing:1.5px}
+.page-title{font-family:var(--font-serif);font-size:34px;font-weight:900;color:var(--text);line-height:1.1;letter-spacing:-0.8px;margin-bottom:10px}
+[data-theme="dark"] .page-title{font-family:var(--font-sans);font-size:20px;font-weight:800;letter-spacing:-0.3px}
+.page-deck{font-family:var(--font-serif);font-size:15px;color:var(--text2);line-height:1.55;font-style:italic;margin-bottom:26px;font-weight:400;max-width:720px}
+[data-theme="dark"] .page-deck{font-family:var(--font-sans);font-size:12px;font-style:normal}
+.page-header-rule{height:1px;background:var(--border-strong);margin-bottom:26px;position:relative}
+.page-header-rule::after{content:'';position:absolute;top:0;left:0;width:80px;height:3px;background:var(--accent2);margin-top:-1px}
+[data-theme="dark"] .page-header-rule{display:none}
+
+/* ═══════ GRIDS ═══════ */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:24px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px}
+.g-main{display:grid;grid-template-columns:1.8fr 1fr;gap:18px;margin-bottom:24px}
+.g-domains{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.gap-col{display:flex;flex-direction:column;gap:18px}
+[data-theme="dark"] .g4,[data-theme="dark"] .g2,[data-theme="dark"] .g3,[data-theme="dark"] .g-main{gap:14px;margin-bottom:18px}
+[data-theme="dark"] .g-domains{gap:10px}
+[data-theme="dark"] .gap-col{gap:14px}
+
+/* ═══════ CARDS ═══════ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);transition:background .35s,border-color .35s,box-shadow .35s}
+[data-theme="dark"] .card{border-radius:10px;padding:18px;box-shadow:none}
+.card-title{font-family:var(--font-sans);font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:var(--accent2);font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+[data-theme="dark"] .card-title{color:var(--text3);letter-spacing:1.2px;font-size:9px;padding-bottom:0;border-bottom:none;margin-bottom:14px}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);gap:12px}
+[data-theme="dark"] .card-header{padding-bottom:0;border-bottom:none;margin-bottom:14px}
+.card-header .card-title{margin-bottom:0;padding-bottom:0;border-bottom:none}
+
+/* ═══════ KPI ═══════ */
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s,border-color .25s}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--border-strong)}
+.kpi::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--kpi-c,var(--accent));transition:width .3s}
+[data-theme="dark"] .kpi{border-radius:10px;padding:18px}
+[data-theme="dark"] .kpi::before{top:0;left:0;right:0;width:auto;height:2px}
+.kpi-label{font-family:var(--font-sans);font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:var(--text2);font-weight:600;margin-bottom:12px}
+[data-theme="dark"] .kpi-label{color:var(--text3);font-weight:700;letter-spacing:1.2px;font-size:9px;margin-bottom:8px}
+.kpi-value{font-family:var(--font-serif);font-size:44px;font-weight:900;color:var(--text);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-1.5px}
+[data-theme="dark"] .kpi-value{font-family:var(--font-sans);font-size:32px;font-weight:800;letter-spacing:0}
+.kpi-sub{font-size:11px;color:var(--text2);margin-top:10px;line-height:1.45;font-style:italic}
+[data-theme="dark"] .kpi-sub{font-style:normal;font-size:10px;margin-top:6px}
+.kpi-icon{position:absolute;top:18px;right:18px;font-size:22px;opacity:.08}
+[data-theme="dark"] .kpi-icon{opacity:.12}
+
+/* ═══════ GANTT ═══════ */
+.gantt-year-row{display:grid;grid-template-columns:130px 1fr;gap:12px;margin-bottom:8px}
+.gantt-year-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);padding:0 2px;font-variant-numeric:tabular-nums}
+.gantt-row{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:center;margin-bottom:9px}
+.gantt-row:last-child{margin-bottom:0}
+.gantt-label{font-size:11px;color:var(--text);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+[data-theme="dark"] .gantt-label{color:var(--text2);font-weight:400}
+.gantt-track{height:24px;background:var(--surface2);border-radius:var(--radius);position:relative;border:1px solid var(--border)}
+[data-theme="dark"] .gantt-track{border:none;height:22px;border-radius:4px}
+.gantt-bar{height:100%;border-radius:var(--radius);position:absolute;display:flex;align-items:center;padding:0 9px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;transition:opacity .2s;cursor:default;letter-spacing:.3px}
+.gantt-bar:hover{opacity:.85}
+.gantt-bar.current{animation:glow 2.5s infinite}
+[data-theme="dark"] .gantt-bar{border-radius:4px}
+@keyframes glow{0%,100%{box-shadow:0 0 4px currentColor}50%{box-shadow:0 0 10px currentColor}}
+
+/* ═══════ TIMELINE ═══════ */
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:'';position:absolute;left:7px;top:4px;bottom:4px;width:1px;background:var(--border-strong)}
+[data-theme="dark"] .timeline::before{width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:22px;cursor:pointer}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-23px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--dot-c,var(--accent));border:2px solid var(--surface);box-shadow:0 0 0 1px var(--border-strong);z-index:1;transition:transform .2s}
+[data-theme="dark"] .tl-dot{box-shadow:none;border-color:var(--bg)}
+.tl-item:hover .tl-dot{transform:scale(1.25)}
+.tl-dot.live{box-shadow:0 0 0 1px var(--border-strong),0 0 0 5px var(--accent-soft)}
+[data-theme="dark"] .tl-dot.live{box-shadow:0 0 0 3px rgba(79,142,247,.2)}
+.tl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.tl-role{font-family:var(--font-serif);font-size:15px;font-weight:700;color:var(--text);line-height:1.25;letter-spacing:-0.2px}
+[data-theme="dark"] .tl-role{font-family:var(--font-sans);font-size:12px}
+.tl-company{font-size:11.5px;color:var(--text2);margin-top:3px;font-weight:500}
+[data-theme="dark"] .tl-company{font-size:11px}
+.tl-period{font-size:10px;color:var(--text3);white-space:nowrap;background:var(--surface2);padding:3px 8px;border-radius:var(--radius);flex-shrink:0;font-weight:600;border:1px solid var(--border);font-variant-numeric:tabular-nums}
+[data-theme="dark"] .tl-period{border:none;border-radius:4px;padding:2px 7px}
+.tl-body{display:none;margin-top:12px;padding:14px 16px;background:var(--bg-alt);border-radius:var(--radius);border-left:3px solid var(--dot-c,var(--accent))}
+[data-theme="dark"] .tl-body{border-radius:7px;padding:11px;background:var(--surface2)}
+.tl-body.open{display:block}
+.tl-body ul{list-style:none;padding:0}
+.tl-body ul li{font-size:12px;color:var(--text2);padding:4px 0 4px 15px;position:relative;line-height:1.55}
+[data-theme="dark"] .tl-body ul li{font-size:11px;padding:3px 0 3px 13px}
+.tl-body ul li::before{content:'→';position:absolute;left:0;color:var(--dot-c,var(--accent));font-weight:600}
+[data-theme="dark"] .tl-body ul li::before{content:'›';font-weight:700}
+
+/* ═══════ SKILL BARS ═══════ */
+.skill-item{margin-bottom:14px}
+.skill-item:last-child{margin-bottom:0}
+.skill-head{display:flex;justify-content:space-between;margin-bottom:6px;align-items:baseline}
+.skill-name{font-size:12.5px;color:var(--text);font-weight:500}
+.skill-pct{font-family:var(--font-mono);font-size:11px;color:var(--text2);font-weight:600}
+[data-theme="dark"] .skill-pct{font-family:var(--font-sans);font-weight:700}
+.skill-track{height:4px;background:var(--surface2);border-radius:0;overflow:hidden;border:1px solid var(--border)}
+[data-theme="dark"] .skill-track{border:none;height:5px;border-radius:3px}
+.skill-fill{height:100%;border-radius:0;background:var(--s1);width:0;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"] .skill-fill{background:linear-gradient(90deg,var(--s1),var(--s2));border-radius:3px}
+
+/* ═══════ ACHIEVEMENTS ═══════ */
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ach-item{background:var(--bg-alt);border-radius:var(--radius);padding:14px 16px;border-left:3px solid var(--ac,var(--accent));transition:background .2s}
+.ach-item:hover{background:var(--surface2)}
+[data-theme="dark"] .ach-item{background:var(--surface2);border-radius:7px;padding:11px}
+.ach-text{font-size:12.5px;color:var(--text2);line-height:1.55}
+[data-theme="dark"] .ach-text{font-size:11px;line-height:1.5}
+.ach-text strong{color:var(--text);font-weight:600}
+
+/* ═══════ TOOLS ═══════ */
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.tool{padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:11.5px;color:var(--text);font-weight:500;transition:all .2s}
+.tool:hover{border-color:var(--border-strong)}
+[data-theme="dark"] .tool{border-radius:5px;color:var(--text2);font-size:11}
+.tool.hi-blue{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.tool.hi-green{color:var(--accent4);border-color:var(--accent4);background:var(--accent4-soft)}
+.tool.hi-amber{color:var(--accent3);border-color:var(--accent3);background:var(--accent3-soft)}
+.tool.hi-purple{color:var(--purple);border-color:var(--purple)}
+[data-theme="dark"] .tool.hi-blue{background:rgba(79,142,247,.06);border-color:rgba(79,142,247,.3)}
+[data-theme="dark"] .tool.hi-green{background:rgba(0,212,170,.06);border-color:rgba(0,212,170,.3);color:var(--accent4)}
+[data-theme="dark"] .tool.hi-amber{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.3)}
+
+/* ═══════ DOMAIN TILES ═══════ */
+.domain-tile{text-align:center;padding:20px 14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);transition:all .2s}
+.domain-tile:hover{border-color:var(--border-strong);transform:translateY(-2px)}
+[data-theme="dark"] .domain-tile{background:var(--surface2);border-radius:8px;padding:14px 10px}
+[data-theme="dark"] .domain-tile:hover{transform:none}
+.domain-icon{font-size:28px;margin-bottom:10px;filter:grayscale(.2)}
+[data-theme="dark"] .domain-icon{font-size:22px;margin-bottom:7px;filter:none}
+.domain-name{font-family:var(--font-serif);font-size:13px;font-weight:700;color:var(--text);line-height:1.25}
+[data-theme="dark"] .domain-name{font-family:var(--font-sans);font-size:11px}
+.domain-sub{font-size:10.5px;color:var(--text2);margin-top:5px;font-style:italic}
+[data-theme="dark"] .domain-sub{font-size:10px;font-style:normal;margin-top:3px}
+
+/* ═══════ EDU TABLE ═══════ */
+.edu-tbl{width:100%;border-collapse:collapse}
+.edu-tbl th{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);font-weight:700;padding:10px 12px;text-align:left;border-bottom:2px solid var(--border-strong)}
+[data-theme="dark"] .edu-tbl th{border-bottom:1px solid var(--border);letter-spacing:1px;font-size:9px;padding:7px 10px}
+.edu-tbl td{padding:14px 12px;font-size:12.5px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2);line-height:1.5}
+[data-theme="dark"] .edu-tbl td{padding:10px 10px;font-size:11.5px;line-height:1.5}
+.edu-tbl tr:last-child td{border-bottom:none}
+.edu-tbl td:first-child{color:var(--accent2);font-weight:700;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+[data-theme="dark"] .edu-tbl td:first-child{color:var(--accent);font-size:12px}
+
+/* ═══════ TAGS ═══════ */
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.tag{padding:4px 12px;border-radius:var(--radius);font-size:11px;font-weight:600;border:1px solid;letter-spacing:.3px}
+[data-theme="dark"] .tag{border-radius:20px;font-size:10.5px;font-weight:500}
+.tag-blue{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.tag-green{color:var(--accent4);border-color:var(--accent4);background:var(--accent4-soft)}
+.tag-amber{color:var(--accent3);border-color:var(--accent3);background:var(--accent3-soft)}
+.tag-purple{color:var(--purple);border-color:var(--purple);background:var(--surface2)}
+.tag-pink{color:var(--pink);border-color:var(--pink);background:var(--surface2)}
+
+/* ═══════ INTEREST TAGS ═══════ */
+.interest-tags{display:flex;flex-wrap:wrap;gap:9px}
+.int-tag{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;transition:all .2s}
+.int-tag:hover{background:var(--bg-alt);color:var(--text)}
+[data-theme="dark"] .int-tag{border-radius:7px;font-size:11.5px}
+
+/* ═══════ SECTION TITLE ═══════ */
+.sec-title{font-family:var(--font-serif);font-size:18px;font-weight:700;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:12px;letter-spacing:-0.3px}
+[data-theme="dark"] .sec-title{font-family:var(--font-sans);font-size:11px;font-weight:700;margin-bottom:14px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-title::before{content:'§';font-family:var(--font-serif);color:var(--accent2);font-weight:900;font-size:20px;font-style:italic}
+[data-theme="dark"] .sec-title::before{display:none}
+
+/* ═══════ CERT ITEMS ═══════ */
+.cert-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-alt);border-radius:var(--radius);border:1px solid var(--border);transition:all .2s}
+.cert-item:hover{border-color:var(--border-strong)}
+[data-theme="dark"] .cert-item{border:none;background:var(--surface2);border-radius:7px;padding:9px}
+.cert-icon{width:38px;height:38px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+[data-theme="dark"] .cert-icon{width:34px;height:34px;border-radius:7px;font-size:17px}
+.cert-name{font-family:var(--font-serif);font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.1px}
+[data-theme="dark"] .cert-name{font-family:var(--font-sans);font-size:11.5px}
+.cert-sub{font-size:11px;color:var(--text2);margin-top:3px;font-style:italic}
+[data-theme="dark"] .cert-sub{font-size:10px;font-style:normal;margin-top:2px}
+
+/* ═══════ AWARD ═══════ */
+.award{padding:12px 14px;border-radius:var(--radius);background:var(--accent3-soft);border:1px solid var(--accent3);border-left:4px solid var(--accent3);margin-bottom:10px}
+.award:last-child{margin-bottom:0}
+[data-theme="dark"] .award{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-left-width:1px;border-radius:7px;padding:10px}
+.award-title{font-family:var(--font-serif);font-size:13px;font-weight:700;color:var(--accent3);letter-spacing:-0.2px}
+[data-theme="dark"] .award-title{font-family:var(--font-sans);font-size:11.5px}
+.award-sub{font-size:11px;color:var(--text2);margin-top:4px}
+[data-theme="dark"] .award-sub{font-size:10px;margin-top:3px}
+
+/* ═══════ CHART WRAP ═══════ */
+.chart-wrap{position:relative;width:100%}
+
+/* ═══════ FOCUS LEGEND ═══════ */
+.focus-legend{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.focus-leg-item{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text2);font-weight:500}
+.focus-leg-dot{width:12px;height:12px;border-radius:2px}
+[data-theme="dark"] .focus-leg-dot{border-radius:3px}
+
+/* ═══════ CURRENT ROLE CARD ═══════ */
+.current-role-title{font-family:var(--font-serif);font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.2;letter-spacing:-0.3px}
+[data-theme="dark"] .current-role-title{font-family:var(--font-sans);font-size:13px}
+.current-role-company{font-size:11.5px;color:var(--accent2);margin-bottom:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+[data-theme="dark"] .current-role-company{color:var(--accent);letter-spacing:0;text-transform:none;font-size:11px;margin-bottom:9px}
+.current-role-desc{font-size:12.5px;color:var(--text2);line-height:1.65}
+[data-theme="dark"] .current-role-desc{font-size:11px;line-height:1.6}
+
+/* ═══════ BRANDS ═══════ */
+.brands-card{padding:26px 22px 22px}
+[data-theme="dark"] .brands-card{padding:18px}
+.brands-intro{font-family:var(--font-serif);font-size:14px;color:var(--text2);font-style:italic;margin-bottom:20px;text-align:center;max-width:540px;margin-left:auto;margin-right:auto}
+[data-theme="dark"] .brands-intro{font-family:var(--font-sans);font-size:11.5px;font-style:normal;margin-bottom:16px}
+.brands-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:0;align-items:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+[data-theme="dark"] .brands-grid{border:none;gap:2px}
+.brand-tile{display:flex;align-items:center;justify-content:center;padding:26px 14px;border-right:1px solid var(--border);min-height:100px;transition:all .25s;filter:grayscale(1) opacity(.6);position:relative}
+.brand-tile:last-child{border-right:none}
+.brand-tile:hover{filter:grayscale(0) opacity(1);background:var(--bg-alt)}
+[data-theme="dark"] .brand-tile{border:1px solid var(--border);background:var(--surface2);border-radius:8px;filter:grayscale(.4) opacity(.75);min-height:84px;padding:18px 12px}
+[data-theme="dark"] .brand-tile:hover{filter:grayscale(0) opacity(1);background:var(--bg-alt);border-color:var(--border-strong)}
+.brand-wordmark{font-weight:800;letter-spacing:-0.5px;text-align:center;line-height:1;white-space:nowrap}
+.brand-sub{font-size:8.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-top:4px;font-weight:600;font-family:var(--font-sans)}
+
+/* Individual brand wordmarks — styled to evoke the real thing */
+.bw-iconic{font-family:var(--font-serif);font-size:17px;color:#000;font-weight:900;letter-spacing:2px}
+[data-theme="dark"] .bw-iconic{color:#fff}
+.bw-iconic::before{content:'THE ';font-size:10px;letter-spacing:3px;vertical-align:middle;font-weight:500}
+
+.bw-kindred{font-size:18px;color:#000;font-weight:400;letter-spacing:-0.5px;font-family:var(--font-sans)}
+[data-theme="dark"] .bw-kindred{color:#fff}
+.bw-kindred .k{color:#e91e63;font-weight:800;margin-right:2px;font-size:22px;display:inline-block;transform:rotate(-8deg)}
+
+.bw-qantas{font-family:var(--font-sans);font-size:15px;color:#ee1c25;font-weight:800;letter-spacing:2px}
+.bw-qantas::before{content:'✈ '}
+
+.bw-coke{font-family:var(--font-serif);font-size:22px;color:#f40009;font-style:italic;font-weight:400;letter-spacing:-1px}
+
+.bw-pwc{font-family:var(--font-sans);font-size:20px;color:#d04a02;font-weight:800;letter-spacing:-1px}
+
+.bw-mirvac{font-family:var(--font-sans);font-size:17px;color:#1e3a5f;font-weight:700;letter-spacing:.5px}
+[data-theme="dark"] .bw-mirvac{color:#6b9ad1}
+
+.bw-acma{font-family:var(--font-serif);font-size:12px;color:#0a2540;font-weight:700;letter-spacing:.3px;line-height:1.15;text-align:center}
+[data-theme="dark"] .bw-acma{color:#cbd5e1}
+
+.bw-prgx{font-family:var(--font-sans);font-size:19px;color:#005ca9;font-weight:800;letter-spacing:1px}
+
+.bw-ccamatil{font-family:var(--font-serif);font-size:14px;color:#b31b0d;font-weight:700;letter-spacing:.5px;line-height:1.2;text-align:center}
+
+/* ═══════ ANALYTICS POV ═══════ */
+.pov-masthead{padding:34px 30px 30px;text-align:center;border-bottom:3px double var(--rule);background:var(--surface);position:relative}
+[data-theme="dark"] .pov-masthead{border-bottom:1px solid var(--border);background:var(--surface)}
+.pov-kicker{font-family:var(--font-sans);font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--accent2);font-weight:700;margin-bottom:10px}
+[data-theme="dark"] .pov-kicker{color:var(--accent);letter-spacing:2px}
+.pov-title{font-family:var(--font-serif);font-size:36px;font-weight:900;color:var(--text);line-height:1.1;letter-spacing:-0.8px;margin-bottom:12px}
+[data-theme="dark"] .pov-title{font-family:var(--font-sans);font-size:22px;font-weight:700;letter-spacing:-0.3px}
+.pov-lede{font-family:var(--font-serif);font-size:15px;font-style:italic;color:var(--text2);max-width:620px;margin:0 auto;line-height:1.55}
+[data-theme="dark"] .pov-lede{font-family:var(--font-sans);font-style:normal;font-size:12px;max-width:560px}
+
+.pov-card{padding:0;overflow:hidden;display:grid;grid-template-columns:56px 1fr;gap:0}
+[data-theme="dark"] .pov-card{grid-template-columns:44px 1fr}
+.pov-num{font-family:var(--font-serif);font-size:54px;font-weight:900;color:var(--accent2);line-height:1;padding:24px 0 0 18px;letter-spacing:-2px}
+[data-theme="dark"] .pov-num{font-family:var(--font-sans);font-size:26px;color:var(--accent);padding:18px 0 0 14px;letter-spacing:0}
+.pov-body{padding:24px 28px 28px 8px}
+[data-theme="dark"] .pov-body{padding:18px 20px 20px 6px}
+.pov-head{margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.pov-h1{font-family:var(--font-serif);font-size:24px;font-weight:700;color:var(--text);letter-spacing:-0.4px;line-height:1.15;margin-bottom:3px}
+[data-theme="dark"] .pov-h1{font-family:var(--font-sans);font-size:16px;font-weight:700;letter-spacing:-0.2px}
+.pov-sub{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:2px;font-weight:600;font-family:var(--font-sans)}
+[data-theme="dark"] .pov-sub{letter-spacing:.5px;text-transform:none;font-size:10.5px}
+
+.pov-grid{display:grid;grid-template-columns:300px 1fr;gap:30px;align-items:start}
+.pov-grid-combo{grid-template-columns:300px 1fr}
+.pov-copy p{font-family:var(--font-serif);font-size:13.5px;color:var(--text);line-height:1.65;margin-bottom:12px}
+[data-theme="dark"] .pov-copy p{font-family:var(--font-sans);font-size:12px;line-height:1.6}
+.pov-copy p:first-child::first-letter{font-family:var(--font-serif);font-size:44px;float:left;line-height:1;padding:4px 6px 0 0;color:var(--accent2);font-weight:700}
+[data-theme="dark"] .pov-copy p:first-child::first-letter{font-size:inherit;float:none;padding:0;color:inherit;font-weight:inherit}
+.pov-copy em{font-style:italic;color:var(--accent)}
+.pov-copy strong{font-weight:700;color:var(--text)}
+.pov-meta{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;padding-top:10px;margin-top:8px;border-top:1px solid var(--border);font-family:var(--font-sans)}
+.pov-meta span{color:var(--text2);font-weight:700;margin-right:4px}
+.pov-meta span:not(:first-child){margin-left:10px}
+
+.pov-viz{min-width:0}
+.pov-viz-title{font-family:var(--font-sans);font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;letter-spacing:.2px}
+[data-theme="dark"] .pov-viz-title{font-size:11px}
+
+.pov-multi-head{margin-top:26px;padding-top:18px;border-top:1px solid var(--border)}
+.pov-multi{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+.pov-mini{background:var(--bg-alt);padding:12px 10px 10px;border-radius:var(--radius);border:1px solid var(--border)}
+[data-theme="dark"] .pov-mini{background:var(--surface2);border-color:var(--border)}
+.pov-mini-title{font-size:11px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px;letter-spacing:.3px}
+
+.pov-legend{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--font-sans)}
+.pov-leg{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);font-weight:500}
+.pov-leg-line{width:18px;height:2px;border-radius:1px}
+.pov-leg-bar{width:14px;height:10px;background:var(--text3);opacity:.5;border-radius:1px}
+
+.pov-sankey-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:1100px){.pov-sankey-grid{grid-template-columns:1fr}}
+
+.pov-funnel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:6px}
+.pov-funnel{display:flex;flex-direction:column;gap:4px}
+.pov-funnel-h{font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:.3px;text-align:center}
+.pov-funnel-row{display:grid;grid-template-columns:42px 1fr 46px;align-items:center;gap:6px;font-size:10.5px;font-family:var(--font-sans)}
+.pov-funnel-label{text-align:right;color:var(--text2);font-weight:500}
+.pov-funnel-barwrap{display:flex;align-items:center;justify-content:center;min-width:0}
+.pov-funnel-bar{height:22px;background:linear-gradient(180deg,#c8384a,#a42535);border-radius:1px;transition:width .7s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px;white-space:nowrap;box-shadow:0 1px 0 rgba(0,0,0,.06)}
+.pov-funnel-bar.low{background:linear-gradient(180deg,#c7d9e8,#aec4d8);color:#334155}
+.pov-funnel-bar.mid{background:linear-gradient(180deg,#d98a93,#c66f7b);color:#fff}
+[data-theme="dark"] .pov-funnel-bar{background:linear-gradient(180deg,#e05c5c,#b43d3d);height:18px}
+[data-theme="dark"] .pov-funnel-bar.low{background:linear-gradient(180deg,#4f8ef7,#3a6fc9);opacity:.55;color:#fff}
+[data-theme="dark"] .pov-funnel-bar.mid{background:linear-gradient(180deg,#e05c5c,#c14a4a);opacity:.85}
+.pov-funnel-val{font-size:10px;color:var(--text3);font-weight:600;text-align:left}
+
+.pov-leg-bar.pov-e{background:#9bd0e6}
+.pov-leg-bar.pov-w{background:#8b2e3f}
+[data-theme="dark"] .pov-leg-bar.pov-e{background:#7dd3fc}
+[data-theme="dark"] .pov-leg-bar.pov-w{background:#e05c5c}
+
+.pov-build-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:8px}
+.pov-build-step{position:relative;padding-top:8px}
+.pov-build-n{position:absolute;top:-6px;left:-4px;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:900;font-size:16px;box-shadow:var(--shadow)}
+[data-theme="dark"] .pov-build-n{font-family:var(--font-sans);font-size:13px}
+.pov-build-cap{font-family:var(--font-serif);font-size:12.5px;color:var(--text2);line-height:1.6;padding:6px 0 12px 42px;min-height:108px}
+[data-theme="dark"] .pov-build-cap{font-family:var(--font-sans);font-size:11.5px;padding-left:40px;min-height:100px}
+.pov-build-cap strong{color:var(--text);font-weight:700}
+.pov-build-viz-title{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin:8px 0 6px;font-weight:600;font-family:var(--font-sans);padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+.pov-close{margin-top:28px;padding-top:22px;border-top:3px double var(--rule)}
+[data-theme="dark"] .pov-close{border-top:1px solid var(--border)}
+.pov-close p{font-family:var(--font-serif);font-size:13.5px;line-height:1.65;color:var(--text);max-width:760px;margin:0 auto 10px;text-align:center}
+[data-theme="dark"] .pov-close p{font-family:var(--font-sans);font-size:12px}
+.pov-close-sig{font-style:italic;color:var(--text2)!important;padding-top:14px;border-top:1px solid var(--border);margin-top:14px!important}
+.pov-end{text-align:center;margin-top:16px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:4px;font-weight:600;font-family:var(--font-sans)}
+
+@media(max-width:980px){
+  .pov-build-grid{grid-template-columns:1fr}
+}
+
+.pov-card-placeholder{opacity:.7;border-style:dashed;background:transparent}
+[data-theme="dark"] .pov-card-placeholder{opacity:.5;border-style:dashed}
+.pov-placeholder-box{border:2px dashed var(--border);padding:32px;border-radius:var(--radius);text-align:center;margin-top:14px;background:var(--bg-alt)}
+[data-theme="dark"] .pov-placeholder-box{background:var(--surface2)}
+.pov-placeholder-icon{font-size:32px;color:var(--border-strong);margin-bottom:8px}
+.pov-placeholder-note{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;font-weight:600;font-family:var(--font-sans)}
+
+@media(max-width:980px){
+  .pov-grid,.pov-grid-combo{grid-template-columns:1fr}
+  .pov-multi{grid-template-columns:1fr}
+  .pov-funnel-grid{grid-template-columns:1fr}
+  .pov-title{font-size:26px}
+  .pov-num{font-size:40px}
+}
+
+/* ═══════ SCROLLBAR ═══════ */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:0}
+[data-theme="dark"] ::-webkit-scrollbar{width:5px}
+[data-theme="dark"] ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ═══════ RESPONSIVE ═══════ */
+@media(max-width:1300px){.brands-grid{grid-template-columns:repeat(4,1fr)}.brand-tile:nth-child(4n){border-right:none}.brand-tile:nth-child(n+5){border-top:1px solid var(--border)}[data-theme="dark"] .brand-tile:nth-child(n+5){border-top:1px solid var(--border)}}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g-main{grid-template-columns:1fr}}
+@media(max-width:820px){.g2{grid-template-columns:1fr}.ach-grid{grid-template-columns:1fr}.g-domains{grid-template-columns:repeat(2,1fr)}.brands-grid{grid-template-columns:repeat(2,1fr)}.brand-tile:nth-child(2n){border-right:none}.brand-tile:nth-child(n+3){border-top:1px solid var(--border)}}
+@media(max-width:640px){.sidebar{display:none}.main{margin-left:0}.content{padding:20px 18px}.page-title{font-size:26px}}
+
+/* ═══════ PRINT ═══════ */
+@media print{.sidebar,.topbar{display:none}.main{margin-left:0}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sb-header">
+    <div class="sb-avatar">
+      <img src="me.jpg" alt="Damjan Vlastelica" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="fallback" style="display:none">DV</span>
+    </div>
+    <div class="sb-name">Damjan Vlastelica</div>
+    <div class="sb-role">Data &amp; Analytics Leader</div>
+    <div class="sb-location">📍 Sydney, Australia</div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="nav-section-label">Dashboard</div>
+    <div class="nav-item active" onclick="show('overview',this)">
+      <span class="nav-icon">⬛</span>Overview
+    </div>
+    <div class="nav-item" onclick="show('experience',this)">
+      <span class="nav-icon">◉</span>Experience
+    </div>
+    <div class="nav-item" onclick="show('skills',this)">
+      <span class="nav-icon">◈</span>Skills &amp; Tools
+    </div>
+    <div class="nav-item" onclick="show('education',this)">
+      <span class="nav-icon">◎</span>Education
+    </div>
+    <div class="nav-item" onclick="show('pov',this)">
+      <span class="nav-icon">◐</span>Analytics POV
+    </div>
+    <div class="nav-section-label">About</div>
+    <div class="nav-item" onclick="show('about',this)">
+      <span class="nav-icon">◇</span>Profile &amp; Interests
+    </div>
+  </nav>
+
+  <div class="sb-contact">
+    <div class="contact-row"><span class="contact-icon">✉</span>damjanv83@gmail.com</div>
+    <div class="contact-row"><span class="contact-icon">☎</span>0402 278 519</div>
+    <div class="contact-row"><span class="contact-icon">🌐</span>Open to opportunities</div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Professional Dashboard · Damjan Vlastelica</div>
+      <div class="topbar-sub">The Quarterly · Issue I · April MMXXVI</div>
+    </div>
+    <div class="topbar-right">
+      <span class="pulse"></span>
+      <span style="font-size:10px;color:var(--text2)">Available for opportunities</span>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark theme" aria-label="Toggle theme">
+        <span class="t-icon" id="theme-icon">◐</span>
+        <span id="theme-label">Dark mode</span>
+      </button>
+      <span class="badge">Updated Apr 2026</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════ OVERVIEW ══════════ -->
+    <div class="section active" id="section-overview">
+
+      <!-- KPI Row -->
+      <div class="g4">
+        <div class="kpi" style="--kpi-c:var(--accent)">
+          <div class="kpi-label">Years Experience</div>
+          <div class="kpi-value" data-count="19">0</div>
+          <div class="kpi-sub">Across data, strategy &amp; tech</div>
+          <div class="kpi-icon">📊</div>
+        </div>
+        <div class="kpi" style="--kpi-c:var(--accent2)">
+          <div class="kpi-label">Organisations</div>
+          <div class="kpi-value" data-count="10">0</div>
+          <div class="kpi-sub">Across 7+ industries</div>
+          <div class="kpi-icon">🏢</div>
+        </div>
+        <div class="kpi" style="--kpi-c:var(--accent3)">
+          <div class="kpi-label">Client Value Delivered</div>
+          <div class="kpi-value">$34M+</div>
+          <div class="kpi-sub">Recoveries &amp; profit improvement</div>
+          <div class="kpi-icon">💰</div>
+        </div>
+        <div class="kpi" style="--kpi-c:var(--accent4)">
+          <div class="kpi-label">Staff Managed</div>
+          <div class="kpi-value" data-count="21">0</div>
+          <div class="kpi-sub">AU direct + offshore reports</div>
+          <div class="kpi-icon">👥</div>
+        </div>
+      </div>
+
+      <!-- Career Gantt + Side panels -->
+      <div class="g-main">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Career Timeline</div>
+            <span style="font-size:9px;color:var(--text3)">2007 → Present · hover for details</span>
+          </div>
+          <div class="gantt-year-row">
+            <div></div>
+            <div class="gantt-year-labels" id="gantt-years"></div>
+          </div>
+          <div id="gantt-chart"></div>
+        </div>
+
+        <div class="gap-col">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Current Role</div>
+              <span class="pulse"></span>
+            </div>
+            <div class="current-role-title">Snr Manager, Reporting &amp; Analytics + Gen-AI</div>
+            <div class="current-role-company">The Iconic · Sydney · 2024 – Present</div>
+            <div class="current-role-desc">Leading analytics, reporting and AI adoption at Australia's premier e-commerce fashion retailer. Driving agentic analytics, the internal AI Guild, and loyalty program data capability.</div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Industry Exposure</div>
+            </div>
+            <div class="chart-wrap" style="height:175px">
+              <canvas id="industryChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Career Focus Evolution -->
+      <div class="card" style="margin-bottom:18px">
+        <div class="card-header">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">How my areas of focus have changed over time</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:400">% of day spent on key activities (rough estimate) · Started in consulting → scaling data teams → now people leadership</div>
+          </div>
+          <div style="font-size:9px;color:var(--text3)">2007 → 2026</div>
+        </div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="focusChart"></canvas>
+        </div>
+        <div class="focus-legend" id="focus-legend"></div>
+      </div>
+
+      <!-- Brands / Clients -->
+      <div class="card brands-card" style="margin-bottom:18px">
+        <div class="card-header">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">Selected Clients &amp; Employers</div>
+            <div style="font-size:10px;color:var(--text2);font-weight:400">A cross-section of the organisations I've helped build data &amp; analytics capability for</div>
+          </div>
+          <div style="font-size:9px;color:var(--text3)">2007 → Present</div>
+        </div>
+        <p class="brands-intro">&ldquo;From ASX 50 airlines and federal agencies to the country's largest fashion e-retailer.&rdquo;</p>
+        <div class="brands-grid">
+          <div class="brand-tile" title="The Iconic · 2024–Present"><span class="brand-wordmark bw-iconic">ICONIC</span></div>
+          <div class="brand-tile" title="Kindred Group · 2022–2024"><span class="brand-wordmark bw-kindred"><span class="k">K</span>indred</span></div>
+          <div class="brand-tile" title="Qantas · 2016–2020"><span class="brand-wordmark bw-qantas">QANTAS</span></div>
+          <div class="brand-tile" title="Coca-Cola Amatil · 2014–2015"><span class="brand-wordmark bw-coke">Coca-Cola</span></div>
+          <div class="brand-tile" title="Mirvac · 2021–2022"><span class="brand-wordmark bw-mirvac">MIRVAC</span></div>
+          <div class="brand-tile" title="Australian Communications &amp; Media Authority · 2020–2021"><span class="brand-wordmark bw-acma">Australian<br>Government<div class="brand-sub">ACMA</div></span></div>
+          <div class="brand-tile" title="PwC · 2010–2011"><span class="brand-wordmark bw-pwc">pwc</span></div>
+          <div class="brand-tile" title="PRGX (NASDAQ) · 2011–2014"><span class="brand-wordmark bw-prgx">PRGX</span></div>
+        </div>
+      </div>
+
+      <!-- Key Achievements -->
+      <div class="card">
+        <div class="card-title">Key Career Achievements</div>
+        <div class="ach-grid">
+          <div class="ach-item" style="--ac:var(--accent)">
+            <div class="ach-text">Crafted AI strategy &amp; emerging tech solutions for a <strong>National Airline Carrier (Qantas)</strong></div>
+          </div>
+          <div class="ach-item" style="--ac:var(--accent2)">
+            <div class="ach-text">Built data platform for new <strong>Loyalty Program</strong> at Australia's premier e-commerce retailer (The Iconic)</div>
+          </div>
+          <div class="ach-item" style="--ac:var(--accent3)">
+            <div class="ach-text">Managed NSW team &amp; delivered all projects for a <strong>NASDAQ-listed data consultancy (PRGX)</strong></div>
+          </div>
+          <div class="ach-item" style="--ac:var(--accent4)">
+            <div class="ach-text">Created <strong>CEO-level reporting suite</strong> covering 60+ KPIs across ~200K outlets for Coca-Cola Amatil</div>
+          </div>
+          <div class="ach-item" style="--ac:var(--purple)">
+            <div class="ach-text">End-to-end data capability build for <strong>new Qantas verticals</strong> — Insurance &amp; Financial Services</div>
+          </div>
+          <div class="ach-item" style="--ac:var(--pink)">
+            <div class="ach-text">Delivered <strong>$34M+ in client profit improvements</strong> at PRGX ($12M in 2013, $22M in 2014)</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /overview -->
+
+
+    <!-- ══════════ EXPERIENCE ══════════ -->
+    <div class="section" id="section-experience">
+      <div class="g2">
+
+        <!-- Left col: recent -->
+        <div>
+          <div class="sec-title">Recent &amp; Senior Roles</div>
+          <div class="timeline">
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--accent)">
+              <div class="tl-dot live"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Snr Manager, Reporting &amp; Analytics + Gen-AI</div>
+                  <div class="tl-company">The Iconic · Sydney</div>
+                </div>
+                <div class="tl-period">2024 – Present</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Leading a team of data analysts to deliver reporting tied to organisational OKRs</li>
+                  <li>Building semantic &amp; reporting layers atop Data Engineering pipelines for data democratisation</li>
+                  <li>Driving Gen-AI adoption: internal AI Guild, LLM-powered assistants, agentic tooling</li>
+                  <li>Developed agentic solutions to automate Looker report &amp; analytics delivery</li>
+                  <li>Defined comprehensive reporting &amp; semantic layers for new Loyalty program</li>
+                  <li>Identified critical performance gap in second-largest market, directly driving a key OKR</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--accent2)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Lead, Reporting Data and Analytics</div>
+                  <div class="tl-company">Kindred Group · Sydney</div>
+                </div>
+                <div class="tl-period">2022 – 2024</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>EU &amp; cross-jurisdictional data governance &amp; compliance</li>
+                  <li>Automated comprehensive reporting for multiple regulatory bodies</li>
+                  <li>Analytics support across trading, marketing, commercial, finance &amp; risk management</li>
+                  <li>Rolled out global reporting platform integrated with new trading system</li>
+                  <li>Managed end-to-end campaign data requirements including CRM migration (AU region)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--accent3)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Manager, Data and Analytics</div>
+                  <div class="tl-company">Mirvac · Sydney</div>
+                </div>
+                <div class="tl-period">2021 – 2022</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>VoC &amp; NPS scoring across 13 key shopping assets around Australia</li>
+                  <li>KPI reporting framework development</li>
+                  <li>Data literacy &amp; governance training delivery</li>
+                  <li>Development of data infrastructure; selection of data tooling</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--accent4)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Executive Data Analytics &amp; Reporting Specialist</div>
+                  <div class="tl-company">ACMA (Australian Comms &amp; Media Authority)</div>
+                </div>
+                <div class="tl-period">2020 – 2021</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Delivered Australian Media Regulator's new data strategy</li>
+                  <li>Financial hardship &amp; annual state-of-play reporting</li>
+                  <li>Electromagnetic Energy (EME) reporting</li>
+                  <li>Predictive analytics: lapsed licensing, spectrum management, complaint processing</li>
+                  <li>Data Governance processes &amp; data project value identification/prioritisation</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--purple)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Senior Emerging Tech Specialist, Office of CTO</div>
+                  <div class="tl-company">Qantas Group · Sydney</div>
+                </div>
+                <div class="tl-period">2018 – 2020</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Developed &amp; delivered Qantas Group Emerging Tech &amp; AI strategies</li>
+                  <li>Presented to GMC (CEO &amp; direct reports) on emerging technology</li>
+                  <li>Managed POC development &amp; partner procurement for solution delivery</li>
+                  <li>Drove cultural change, tech enablement &amp; group innovation framework</li>
+                  <li>Procured AI and emerging tech software &amp; hardware; managed tech partnerships</li>
+                  <li>Mentoring &amp; leadership of junior staff</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right col: earlier -->
+        <div>
+          <div class="sec-title">Earlier Career</div>
+          <div class="timeline">
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--pink)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Marketing Analyst / Strategic Insights SME</div>
+                  <div class="tl-company">Qantas New Ventures (Insurance) · Sydney</div>
+                </div>
+                <div class="tl-period">2016 – 2018</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Set up &amp; scaled data capability for greenfield venture within Qantas Frequent Flyer</li>
+                  <li>Built 'Always On' campaign model driving 14% of all customer communications</li>
+                  <li>Customer segmentation, app usage analytics, lead conversion &amp; channel analysis</li>
+                  <li>Built C-Level dashboards and data sources from the ground up</li>
+                  <li>Market sizing and opportunity identification for Head of Marketing</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:#34d399">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Strategic Insights Consultant</div>
+                  <div class="tl-company">Summit Insights / Coca-Cola Amatil</div>
+                </div>
+                <div class="tl-period">2014 – 2015</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Tableau dashboards for CCA: 60+ metrics, ~200K outlets, 800 sales staff — MD level</li>
+                  <li>Price &amp; promotion strategies, range planning, loyalty card &amp; basket analytics</li>
+                  <li>Performed organisation's first foot traffic analysis using people counters</li>
+                  <li>Delivered insights to 100+ clients across diverse industries</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:#fb923c">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Manager / Senior Manager</div>
+                  <div class="tl-company">PRGX · Australia</div>
+                </div>
+                <div class="tl-period">2011 – 2014</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Delivered $12M profit improvement in 2013 and $22M in 2014</li>
+                  <li>Managed 6 AU direct reports + 15 offshore staff</li>
+                  <li>Improved mining company recovery audit by 500% vs prior review of similar scale</li>
+                  <li>Pioneered organisation's first Advisory services in the Australian market</li>
+                  <li>SQL-driven acquisition, cleansing &amp; analysis of client AR/AP big data</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--text3)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Management Consultant</div>
+                  <div class="tl-company">PwC Australia · Sydney</div>
+                </div>
+                <div class="tl-period">2010 – 2011</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Strategy consulting &amp; financial transaction advisory for Australian companies</li>
+                  <li>Delivered structured analyses and strategic recommendations at Big 4 standard</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--text3)">
+              <div class="tl-dot"></div>
+              <div class="tl-head">
+                <div>
+                  <div class="tl-role">Management Consultant</div>
+                  <div class="tl-company">Grosvenor Performance Group · Sydney</div>
+                </div>
+                <div class="tl-period">2007 – 2010</div>
+              </div>
+              <div class="tl-body">
+                <ul>
+                  <li>Strategic Procurement consulting: post-merger contract consolidation</li>
+                  <li>Economic modelling of project lifetime value</li>
+                  <li>Program Evaluation (evaluation of government initiatives)</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div><!-- /experience -->
+
+
+    <!-- ══════════ SKILLS ══════════ -->
+    <div class="section" id="section-skills">
+
+      <div class="g2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-title">Core Competency Proficiency</div>
+          <div id="skill-bars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Skills Radar</div>
+          <div class="chart-wrap" style="height:285px">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="card-title">Visualisation &amp; BI Platforms</div>
+          <div class="tools">
+            <span class="tool hi-blue">Tableau</span>
+            <span class="tool hi-blue">Looker</span>
+            <span class="tool hi-blue">Power BI</span>
+            <span class="tool hi-blue">Google Looker Studio</span>
+            <span class="tool">Sisense</span>
+            <span class="tool">Metabase</span>
+            <span class="tool">Redash</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Data &amp; Engineering</div>
+          <div class="tools">
+            <span class="tool hi-green">SQL</span>
+            <span class="tool hi-green">Teradata</span>
+            <span class="tool hi-green">BigQuery</span>
+            <span class="tool hi-green">dbt</span>
+            <span class="tool">Python</span>
+            <span class="tool">Spark</span>
+            <span class="tool">Databricks</span>
+            <span class="tool">Snowflake</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">AI &amp; Emerging Technology</div>
+          <div class="tools">
+            <span class="tool hi-amber">Gen-AI / LLMs</span>
+            <span class="tool hi-amber">Claude / GPT-4o</span>
+            <span class="tool hi-amber">Agentic Systems</span>
+            <span class="tool hi-amber">Prompt Engineering</span>
+            <span class="tool">RAG / Embeddings</span>
+            <span class="tool">AI Strategy</span>
+            <span class="tool">MCP / Tool Use</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Domain Expertise</div>
+        <div class="g-domains">
+          <div class="domain-tile">
+            <div class="domain-icon">📊</div>
+            <div class="domain-name">Analytics Leadership</div>
+            <div class="domain-sub">Team management &amp; OKR delivery</div>
+          </div>
+          <div class="domain-tile">
+            <div class="domain-icon">🤖</div>
+            <div class="domain-name">Gen-AI Strategy</div>
+            <div class="domain-sub">Adoption, guilds &amp; agentic tools</div>
+          </div>
+          <div class="domain-tile">
+            <div class="domain-icon">🎯</div>
+            <div class="domain-name">Data Governance</div>
+            <div class="domain-sub">EU compliance &amp; policy frameworks</div>
+          </div>
+          <div class="domain-tile">
+            <div class="domain-icon">🔍</div>
+            <div class="domain-name">Strategic Consulting</div>
+            <div class="domain-sub">PwC &amp; Grosvenor-honed skills</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /skills -->
+
+
+    <!-- ══════════ EDUCATION ══════════ -->
+    <div class="section" id="section-education">
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Academic Qualifications</div>
+          <table class="edu-tbl">
+            <thead>
+              <tr><th>Year</th><th>Institution</th><th>Qualification</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2008</td>
+                <td>La Trobe University</td>
+                <td><strong style="color:var(--text)">Bachelor of Finance</strong> (Corporate Finance)<br><em style="font-size:10px;color:var(--accent3)">🏆 Academic Scholarship &amp; University Award</em></td>
+              </tr>
+              <tr>
+                <td>2005</td>
+                <td>University of Sydney</td>
+                <td><strong style="color:var(--text)">Bachelor of Liberal Studies</strong><br>Psychology — Economics</td>
+              </tr>
+              <tr>
+                <td>2018</td>
+                <td>Various</td>
+                <td>Tableau &amp; additional Analytics Software certifications</td>
+              </tr>
+              <tr>
+                <td>2016</td>
+                <td>Various</td>
+                <td>Analytics Diplomas incl. <strong style="color:var(--text)">Teradata SQL + Advanced</strong></td>
+              </tr>
+              <tr>
+                <td>2000</td>
+                <td>Fort Street High School</td>
+                <td>Higher School Certificate (HSC)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="gap-col">
+          <div class="card">
+            <div class="card-title">Certifications</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(79,142,247,.1)">📊</div>
+                <div>
+                  <div class="cert-name">Tableau Certified</div>
+                  <div class="cert-sub">Data Visualisation · 2018</div>
+                </div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(0,212,170,.1)">🗄️</div>
+                <div>
+                  <div class="cert-name">Teradata SQL Advanced</div>
+                  <div class="cert-sub">Data Engineering · 2016</div>
+                </div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(245,166,35,.1)">🎓</div>
+                <div>
+                  <div class="cert-name">Multiple Analytics Diplomas</div>
+                  <div class="cert-sub">Various providers · 2016</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Academic Honours</div>
+            <div class="award">
+              <div class="award-title">🏆 Academic Scholarship</div>
+              <div class="award-sub">La Trobe University · Bachelor of Finance · Corporate Finance</div>
+            </div>
+            <div class="award">
+              <div class="award-title">🎖️ University Award</div>
+              <div class="award-sub">La Trobe University · Awarded for academic excellence</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /education -->
+
+
+    <!-- ══════════ ABOUT ══════════ -->
+    <div class="section" id="section-about">
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Professional Profile</div>
+          <p style="font-size:12.5px;color:var(--text);font-weight:600;margin-bottom:10px">Data | Gen-AI Strategist &amp; Early Adopter | Commercial Connect-the-Dotter | Lifelong Learner</p>
+          <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">
+            Making Art. Telling Stories. Solving Problems — mostly through analysis and visualisation of large sets of data. Currently leading the Analytics and Reporting function at <strong style="color:var(--text)">The Iconic</strong>, Australia's premier e-commerce fashion retailer, while also driving the organisation's adoption of Gen-AI and related technologies.
+          </p>
+          <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px">
+            Previously worked at <strong style="color:var(--text)">Qantas</strong> to launch new businesses (Insurance, Financial Services), identify opportunities for data-driven innovation, and develop strategy to leverage data assets. Formerly a strategy consultant (PwC, Grosvenor) with deep expertise in strategy and implementation.
+          </p>
+          <p style="font-size:12px;color:var(--text2);line-height:1.7">
+            Looking to make the world an incrementally better and more interesting place through actionable, ethical and insightful data and the adoption of new data-related technologies.
+          </p>
+          <div class="tags">
+            <span class="tag tag-blue">Gen-AI Strategy</span>
+            <span class="tag tag-blue">Analytics Leadership</span>
+            <span class="tag tag-green">Data Democratisation</span>
+            <span class="tag tag-green">Agentic Analytics</span>
+            <span class="tag tag-amber">Early Tech Adopter</span>
+            <span class="tag tag-amber">Commercial Acumen</span>
+            <span class="tag tag-purple">Storytelling with Data</span>
+            <span class="tag tag-pink">Lifelong Learner</span>
+          </div>
+        </div>
+
+        <div class="gap-col">
+          <div class="card">
+            <div class="card-title">Interests &amp; Hobbies</div>
+            <div class="interest-tags">
+              <span class="int-tag">✈️ Travel</span>
+              <span class="int-tag">🥾 Hiking</span>
+              <span class="int-tag">💪 Exercise</span>
+              <span class="int-tag">🏐 Volleyball</span>
+              <span class="int-tag">🎾 Tennis</span>
+              <span class="int-tag">🤝 Making Friends</span>
+              <span class="int-tag">🍳 Cooking</span>
+              <span class="int-tag">📚 Reading</span>
+              <span class="int-tag">🎬 Movies</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Contact</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(79,142,247,.1);font-size:14px">✉️</div>
+                <div><div class="cert-name">damjanv83@gmail.com</div></div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(0,212,170,.1);font-size:14px">📱</div>
+                <div><div class="cert-name">0402 278 519</div></div>
+              </div>
+              <div class="cert-item">
+                <div class="cert-icon" style="background:rgba(245,166,35,.1);font-size:14px">📍</div>
+                <div><div class="cert-name">Sydney, Australia</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /about -->
+
+    <!-- ══════════ ANALYTICS POV ══════════ -->
+    <div class="section" id="section-pov">
+
+      <!-- Masthead -->
+      <div class="card pov-masthead">
+        <div class="pov-kicker">§ Portfolio · Point of view</div>
+        <div class="pov-title">My five favourite chart types</div>
+        <div class="pov-lede">A lot of what I do is communicating analytical outcomes to stakeholders. These are five of my favourite charts for the job — in no particular order.</div>
+      </div>
+
+      <!-- 1. Combination charts -->
+      <div class="card pov-card">
+        <div class="pov-num">1.</div>
+        <div class="pov-body">
+          <div class="pov-head">
+            <div class="pov-h1">Combination charts</div>
+            <div class="pov-sub">Bar + line · dual axis · small multiples</div>
+          </div>
+          <div class="pov-grid pov-grid-combo">
+            <div class="pov-copy">
+              <p>Simplicity is usually better — but putting two measures side-by-side can provide essential context that neither tells on its own.</p>
+              <p>These charts were the workhorse of COVID reporting: daily case count (bar) layered with a cumulative curve (line). The second example inverts the pattern and adds small multiples to expose the interplay between <em>case growth rate</em>, <em>test positivity</em>, and <em>daily testing volume</em> across different parts of Sydney.</p>
+              <div class="pov-meta"><span>Chart</span> Bar + Line · <span>Source</span> NSW Health</div>
+            </div>
+            <div class="pov-viz">
+              <div class="pov-viz-title">NSW COVID-19 cases — daily + cumulative</div>
+              <div class="chart-wrap" style="height:260px"><canvas id="povCombo1"></canvas></div>
+            </div>
+          </div>
+          <div class="pov-multi-head">
+            <div class="pov-viz-title" style="color:var(--accent);text-align:center">Case Growth Rate vs Test Positivity vs Daily Tests · by LGA grouping</div>
+          </div>
+          <div class="pov-multi">
+            <div class="pov-mini">
+              <div class="pov-mini-title">Rest of Sydney</div>
+              <div class="chart-wrap" style="height:140px"><canvas id="povCombo2a"></canvas></div>
+              <div class="chart-wrap" style="height:32px;margin-top:2px"><canvas id="povCombo2aBars"></canvas></div>
+            </div>
+            <div class="pov-mini">
+              <div class="pov-mini-title">LGAs of Concern</div>
+              <div class="chart-wrap" style="height:140px"><canvas id="povCombo2b"></canvas></div>
+              <div class="chart-wrap" style="height:32px;margin-top:2px"><canvas id="povCombo2bBars"></canvas></div>
+            </div>
+            <div class="pov-mini">
+              <div class="pov-mini-title">Adjacent to LGAs of Concern</div>
+              <div class="chart-wrap" style="height:140px"><canvas id="povCombo2c"></canvas></div>
+              <div class="chart-wrap" style="height:32px;margin-top:2px"><canvas id="povCombo2cBars"></canvas></div>
+            </div>
+          </div>
+          <div class="pov-legend">
+            <span class="pov-leg"><span class="pov-leg-line" style="background:#1a3a5f"></span>Case Growth Rate (PoP · 7-day avg)</span>
+            <span class="pov-leg"><span class="pov-leg-line" style="background:#d97706"></span>Test Positivity Rate</span>
+            <span class="pov-leg"><span class="pov-leg-bar"></span># Daily Tests</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Box plots -->
+      <div class="card pov-card">
+        <div class="pov-num">2.</div>
+        <div class="pov-body">
+          <div class="pov-head">
+            <div class="pov-h1">Box plots</div>
+            <div class="pov-sub">Distributions at a glance · outlier detection</div>
+          </div>
+          <div class="pov-grid">
+            <div class="pov-copy">
+              <p>Box plots give you the key statistical information at a single glance — median, IQR, range, outliers — all without losing the shape of the distribution.</p>
+              <p>Broken out by a categorical field, they also yield insight into population differences. Here, move-accuracy for my <strong>chess.com</strong> games (scored by Stockfish) is split by game phase — <em>opening / midgame / endgame</em> — and by outcome. The midgame tells most of the story: in losses, my midgame accuracy collapses.</p>
+              <div class="pov-meta"><span>Chart</span> Box-and-whisker · <span>Source</span> chess.com · Stockfish eval</div>
+            </div>
+            <div class="pov-viz">
+              <div class="pov-viz-title">Chess move accuracy, by phase of game (wins vs losses)</div>
+              <div class="chart-wrap" style="height:320px"><canvas id="povBox"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Sankey -->
+      <div class="card pov-card">
+        <div class="pov-num">3.</div>
+        <div class="pov-body">
+          <div class="pov-head">
+            <div class="pov-h1">Sankey charts</div>
+            <div class="pov-sub">Path dependence · flow decomposition</div>
+          </div>
+          <div class="pov-grid">
+            <div class="pov-copy">
+              <p>Sankeys can be a dog's breakfast when done poorly — but done well, they're excellent for telling the story of <em>path dependence</em>: how one outcome leads to another.</p>
+              <p>Same chess data, different question: does winning the opening translate to winning the game? I wrote a case statement comparing my opening / midgame / endgame accuracy against my opponent's — <strong>WO</strong> = won opening, <strong>LO</strong> = lost opening, with the same logic for <strong>WM/LM</strong> and <strong>WE/LE</strong> in the granular view on the right.</p>
+              <div class="pov-meta"><span>Chart</span> Sankey · <span>Source</span> chess.com</div>
+            </div>
+            <div class="pov-viz">
+              <div class="pov-sankey-grid">
+                <div>
+                  <div class="pov-viz-title">Opening result → Game result</div>
+                  <div class="chart-wrap" style="height:300px"><canvas id="povSankey1"></canvas></div>
+                </div>
+                <div>
+                  <div class="pov-viz-title">Opening → full (opening · midgame · endgame) path</div>
+                  <div class="chart-wrap" style="height:300px"><canvas id="povSankey2"></canvas></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Funnel -->
+      <div class="card pov-card">
+        <div class="pov-num">4.</div>
+        <div class="pov-body">
+          <div class="pov-head">
+            <div class="pov-h1">Funnel charts</div>
+            <div class="pov-sub">Conversion · distribution · age-outcome skew</div>
+          </div>
+          <div class="pov-grid">
+            <div class="pov-copy">
+              <p>Funnels aren't just for conversion. Sorting by pre-binned age brackets, they neatly visualise how outcome severity shifts between populations.</p>
+              <p>Here, the NSW 2021 winter outbreak shows the classic COVID skew: young people dominate case counts, but <em>hospitalisation</em> and <em>ICU</em> concentrate in the 30–69 bracket — a textbook example of the same denominator producing three very different shapes.</p>
+              <div class="pov-meta"><span>Chart</span> Funnel · <span>Source</span> NSW Health (21 Aug 2021)</div>
+            </div>
+            <div class="pov-viz">
+              <div class="pov-viz-title" style="color:var(--accent);text-align:center">Age distribution · Cases / Hospitalisation / ICU — NSW '21 Winter Outbreak</div>
+              <div class="pov-funnel-grid" id="pov-funnels"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. The (humble) bar chart -->
+      <div class="card pov-card">
+        <div class="pov-num">5.</div>
+        <div class="pov-body">
+          <div class="pov-head">
+            <div class="pov-h1">The (humble) bar chart</div>
+            <div class="pov-sub">Sort · colour · reveal · don't overthink it</div>
+          </div>
+          <div class="pov-grid">
+            <div class="pov-copy">
+              <p>Often the simplest way to illustrate an insight — and extended considerably with a thoughtful sort and a second categorical encoding via colour.</p>
+              <p>Bar charts are the charts I find myself using the most, switching between vertical and horizontal to add variation. The example here is NBA teams sorted by arena capacity, coloured by conference — revealing that the <em>highest-capacity arenas sit in the Eastern markets</em>.</p>
+              <div class="pov-meta"><span>Chart</span> Bar (sorted, conditional fill) · <span>Source</span> NBA dataset on Kaggle</div>
+            </div>
+            <div class="pov-viz">
+              <div class="pov-viz-title">NBA teams by arena capacity · coloured by conference</div>
+              <div class="chart-wrap" style="height:320px"><canvas id="povBar"></canvas></div>
+              <div class="pov-legend" style="margin-top:10px;border-top:none;padding-top:0">
+                <span class="pov-leg"><span class="pov-leg-bar pov-e" style="opacity:1"></span>Eastern Conference</span>
+                <span class="pov-leg"><span class="pov-leg-bar pov-w" style="opacity:1"></span>Western Conference</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closing masthead -->
+      <div class="card pov-masthead" style="margin-top:28px">
+        <div class="pov-kicker">§ Closing note</div>
+        <div class="pov-title" style="font-size:28px">A quick word on data storytelling</div>
+        <div class="pov-lede">
+          &ldquo;Data storyteller&rdquo; gets thrown around as a desirable skill — to the point where it's been promoted to a role itself. A full treatment is beyond this document, but there is one technique I've used repeatedly with non-technical audiences that is genuinely underutilised: <em>the data build</em>.
+        </div>
+      </div>
+
+      <!-- Data storytelling / data build -->
+      <div class="card pov-card">
+        <div class="pov-num" style="color:var(--accent);font-size:40px">◆</div>
+        <div class="pov-body">
+          <div class="pov-head">
+            <div class="pov-h1">Data builds · one chart, three views</div>
+            <div class="pov-sub">Take stakeholders through the insight · don't drop them in at the end</div>
+          </div>
+          <div class="pov-copy" style="max-width:none;margin-bottom:18px">
+            <p style="font-family:var(--font-serif);font-size:14px">A data build uses two or more views of the <em>same</em> chart to walk an audience through an insight. You use different views of the same canvas to <strong>build</strong> the story, making sure the outcome is clearly understood rather than asserted.</p>
+            <p style="font-family:var(--font-serif);font-size:13px;color:var(--text2)">Good data storytelling should <strong>reveal patterns without bias</strong>, <strong>provide context &amp; articulate insight</strong>, <strong>streamline cognition</strong> and <strong>hold engagement</strong>. Here's the same scatter — 3PT FG% vs 3PT attempts — used three ways.</p>
+          </div>
+          <div class="pov-build-grid">
+            <div class="pov-build-step">
+              <div class="pov-build-n">1</div>
+              <div class="pov-build-cap">
+                <strong>Start with the raw chart.</strong> It already carries a plethora of information — only a few shooters attempt 3s at high volume, % decreases marginally with volume, a handful sustain efficiency at high volume, some outlier high-% shooters live at low volume.
+              </div>
+              <div class="pov-build-viz-title">3PT FG% vs 3PT attempted · Top shooters only</div>
+              <div class="chart-wrap" style="height:240px"><canvas id="povScatter1"></canvas></div>
+            </div>
+            <div class="pov-build-step">
+              <div class="pov-build-n">2</div>
+              <div class="pov-build-cap">
+                <strong>Add context.</strong> A 5-year league-average baseline (horizontal rule) and a reference volume (vertical rule) turn the same data into something decision-ready — one can now see how many top shooters sit above the modern-era NBA average, and at what volume.
+              </div>
+              <div class="pov-build-viz-title">…with league-average reference</div>
+              <div class="chart-wrap" style="height:240px"><canvas id="povScatter2"></canvas></div>
+            </div>
+            <div class="pov-build-step">
+              <div class="pov-build-n">3</div>
+              <div class="pov-build-cap">
+                <strong>Highlight exemplars &amp; transition.</strong> Name the outliers, colour the hero (Stephen Curry). The chart becomes a bridge to a related story — place in NBA history, evolution of three-point shooting, positional archetype.
+              </div>
+              <div class="pov-build-viz-title">…with exemplary cases highlighted</div>
+              <div class="chart-wrap" style="height:240px"><canvas id="povScatter3"></canvas></div>
+            </div>
+          </div>
+          <div class="pov-close">
+            <p>When generating insights I collect every one I believe has business value, run rough commercial modelling on each to give it a directional $ value, order by that value, then tell a 3–8 slide data story for each using data builds and related techniques.</p>
+            <p class="pov-close-sig">Thanks for taking the time to read my (dashboard) CV — I hope it's given you a sense of what I'm like to work with, and what I believe good data &amp; strategic insight looks like.</p>
+            <div class="pov-end">— End of document —</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pov -->
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ── Navigation ──
+function show(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'skills') initSkills();
+  if (id === 'pov' && !povBuilt) buildPov();
+}
+
+// ── Timeline toggle ──
+function tlToggle(el) {
+  el.querySelector('.tl-body').classList.toggle('open');
+}
+
+// ── Counter animation ──
+function animateCounters() {
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count);
+    let n = 0;
+    const step = target / 45;
+    const t = setInterval(() => {
+      n = Math.min(n + step, target);
+      el.textContent = Math.floor(n) + (n >= target ? '+' : '');
+      if (n >= target) clearInterval(t);
+    }, 28);
+  });
+}
+
+// ── Theme system ──
+const THEMES = {
+  light: {
+    // Editorial palette — muted, sophisticated, print-ready
+    gantt: ['#6b7280','#4a5568','#a67c2a','#2e6157','#9c5b7a','#5a4a7a','#8b2e3f','#a67c2a','#2e6157','#1a3a5f'],
+    donut: ['#1a3a5f','#2e6157','#8b2e3f','#5a4a7a','#a67c2a','#9c5b7a'],
+    focus: ['#1a3a5f','#8a8680','#c9c4b6','#a67c2a','#8b2e3f'],
+    radarLine:'#1a3a5f', radarFill:'rgba(26,58,95,.10)',
+    grid:'#e5e1d5', axis:'#555555', tip:'#ffffff', tipTxt:'#1a1a1a', tipSub:'#555555', tipBrd:'#c9c4b6'
+  },
+  dark: {
+    gantt: ['#4a5568','#4a5568','#fb923c','#34d399','#f472b6','#a78bfa','#e05c5c','#f59e0b','#00d4aa','#4f8ef7'],
+    donut: ['#4f8ef7','#00d4aa','#f472b6','#a78bfa','#f59e0b','#e05c5c'],
+    focus: ['#60a5fa','#94a3b8','#334155','#f59e0b','#7c3aed'],
+    radarLine:'#4f8ef7', radarFill:'rgba(79,142,247,.12)',
+    grid:'#2a3045', axis:'#8892a4', tip:'#0d1117', tipTxt:'#e8eaf0', tipSub:'#8892a4', tipBrd:'#2a3045'
+  }
+};
+const getTheme = () => document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+const palette = () => THEMES[getTheme()];
+
+let industryChartInst=null, focusChartInst=null;
+
+function toggleTheme(){
+  const cur = getTheme();
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('dv-theme', next); }catch(e){}
+  document.getElementById('theme-icon').textContent = next === 'dark' ? '☾' : '◐';
+  document.getElementById('theme-label').textContent = next === 'dark' ? 'Light mode' : 'Dark mode';
+  // Rebuild theme-sensitive charts
+  if(industryChartInst){ industryChartInst.destroy(); industryChartInst=null; }
+  if(focusChartInst){ focusChartInst.destroy(); focusChartInst=null; }
+  if(radarInstance){ radarInstance.destroy(); radarInstance=null; }
+  buildGantt();
+  buildIndustryChart();
+  buildFocusChart();
+  if(skillsBuilt){ buildRadarChart(); }
+  if(povBuilt){ buildPov(); }
+}
+
+function initTheme(){
+  let saved = 'light';
+  try{ saved = localStorage.getItem('dv-theme') || 'light'; }catch(e){}
+  document.documentElement.setAttribute('data-theme', saved);
+  const ic = document.getElementById('theme-icon');
+  const lb = document.getElementById('theme-label');
+  if(ic) ic.textContent = saved === 'dark' ? '☾' : '◐';
+  if(lb) lb.textContent = saved === 'dark' ? 'Light mode' : 'Dark mode';
+}
+
+// ── Gantt Chart ──
+function buildGantt() {
+  const S = 2007, E = 2026.4, span = E - S;
+  const P = palette().gantt;
+  const jobs = [
+    { name:'Grosvenor',        s:2007, e:2010,   c:P[0] },
+    { name:'PwC',              s:2010, e:2011,   c:P[1] },
+    { name:'PRGX',             s:2011, e:2014,   c:P[2] },
+    { name:'Summit/CCA',       s:2014, e:2015,   c:P[3] },
+    { name:'Qantas Insurance', s:2016, e:2018,   c:P[4] },
+    { name:'Qantas CTO',       s:2018, e:2020,   c:P[5] },
+    { name:'ACMA',             s:2020, e:2021,   c:P[6] },
+    { name:'Mirvac',           s:2021, e:2022,   c:P[7] },
+    { name:'Kindred',          s:2022, e:2024,   c:P[8] },
+    { name:'The Iconic',       s:2024, e:2026.4, c:P[9] },
+  ];
+
+  // Year labels
+  const yl = document.getElementById('gantt-years');
+  yl.innerHTML = [2007,2010,2013,2016,2019,2022,2025].map(y =>
+    `<span>${y}</span>`).join('');
+
+  // Bars
+  const gc = document.getElementById('gantt-chart');
+  gc.innerHTML = jobs.map(j => {
+    const left = ((j.s - S) / span * 100).toFixed(2);
+    const width = ((j.e - j.s) / span * 100).toFixed(2);
+    const label = j.e >= 2026 ? `${2026-j.s}+ yrs` : `${j.e-j.s} yr${j.e-j.s>1?'s':''}`;
+    const isCurrent = j.e >= 2026;
+    return `<div class="gantt-row">
+      <div class="gantt-label" title="${j.name}">${j.name}</div>
+      <div class="gantt-track">
+        <div class="gantt-bar${isCurrent?' current':''}"
+             style="left:${left}%;width:${width}%;background:${j.c};color:#fff"
+             title="${j.name}: ${j.s}–${isCurrent?'Present':j.e}">
+          ${parseFloat(width) > 7 ? label : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Industry Donut ──
+function buildIndustryChart() {
+  const ctx = document.getElementById('industryChart').getContext('2d');
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  industryChartInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Aviation/Transport','E-comm/Retail','Financial Svcs','Consulting','Property','Government'],
+      datasets: [{
+        data: [2, 2, 2, 3, 1, 1],
+        backgroundColor: T.donut,
+        borderColor: isLight ? '#ffffff' : 'transparent',
+        borderWidth: isLight ? 2 : 0,
+        hoverOffset: 5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: isLight ? '58%' : '62%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font:{size:9,family: isLight ? 'Inter' : 'system-ui'}, color:T.axis, padding:8, boxWidth:9 }
+        }
+      }
+    }
+  });
+}
+
+// ── Skills ──
+let skillsBuilt = false;
+let radarInstance = null;
+
+function buildSkillBars() {
+  const skills = [
+    { n:'Data Visualisation & BI',       p:95, s1:'#4f8ef7', s2:'#00d4aa' },
+    { n:'Analytics & Reporting',          p:95, s1:'#4f8ef7', s2:'#00d4aa' },
+    { n:'Gen-AI Strategy & Adoption',     p:88, s1:'#f59e0b', s2:'#f472b6' },
+    { n:'SQL & Data Engineering',         p:85, s1:'#00d4aa', s2:'#4f8ef7' },
+    { n:'Strategic Consulting',           p:85, s1:'#a78bfa', s2:'#4f8ef7' },
+    { n:'Team Leadership & Management',   p:82, s1:'#f472b6', s2:'#a78bfa' },
+    { n:'Data Governance & Compliance',   p:80, s1:'#e05c5c', s2:'#f59e0b' },
+    { n:'Predictive / Advanced Analytics',p:78, s1:'#34d399', s2:'#4f8ef7' },
+  ];
+  const c = document.getElementById('skill-bars');
+  c.innerHTML = skills.map(s => `
+    <div class="skill-item">
+      <div class="skill-head">
+        <span class="skill-name">${s.n}</span>
+        <span class="skill-pct">${s.p}%</span>
+      </div>
+      <div class="skill-track">
+        <div class="skill-fill" style="--s1:${s.s1};--s2:${s.s2}" data-w="${s.p}%"></div>
+      </div>
+    </div>`).join('');
+}
+
+function buildRadarChart() {
+  if (radarInstance) return;
+  const T = palette();
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  radarInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Data Viz','Analytics','Gen-AI','SQL/Eng','Strategy','Leadership','Governance','Adv. Analytics'],
+      datasets: [{
+        label: 'Proficiency',
+        data: [95,95,88,85,85,82,80,78],
+        borderColor: T.radarLine,
+        backgroundColor: T.radarFill,
+        pointBackgroundColor: T.radarLine,
+        pointRadius: 4,
+        borderWidth: 2,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        r: {
+          min:0, max:100,
+          ticks: { display:false, stepSize:25 },
+          grid: { color:T.grid },
+          angleLines: { color:T.grid },
+          pointLabels: { font:{size:10,family: getTheme()==='light' ? 'Inter' : 'system-ui'}, color:T.axis }
+        }
+      },
+      plugins: { legend: { display:false } }
+    }
+  });
+}
+
+function initSkills() {
+  if (skillsBuilt) return;
+  skillsBuilt = true;
+  buildRadarChart();
+  setTimeout(() => {
+    document.querySelectorAll('.skill-fill').forEach(b => b.style.width = b.dataset.w);
+  }, 120);
+}
+
+// ── Career Focus Stacked Bar ──
+function buildFocusChart() {
+  // [People Leadership, Dashboarding, Consulting, Analytics, Advanced Analytics]
+  const rows = {
+    2007:[0, 0,85,15, 0],
+    2008:[0, 0,85,15, 0],
+    2009:[0, 0,85,15, 0],
+    2010:[0, 0,100,0, 0],
+    2011:[30,0,40,30, 0],
+    2012:[30,0,40,30, 0],
+    2013:[40,0,30,30, 0],
+    2014:[0,40,10,40,10],
+    2015:[0,40,10,40,10],
+    2016:[0,30, 0,50,20],
+    2017:[0,30, 0,50,20],
+    2018:[20,0,10,40,30],
+    2019:[20,0,10,40,30],
+    2020:[20,50,0,30, 0],
+    2021:[30,40,0,30, 0],
+    2022:[50,40,0,10, 0],
+    2023:[50,40,0,10, 0],
+    2024:[70,0, 0,20,10],
+    2025:[70,0, 0,20,10],
+    2026:[70,0, 0,20,10]
+  };
+  const labels = Object.keys(rows);
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  const fc = T.focus;
+  const series = [
+    { name:'People Leadership',   color:fc[0], idx:0 },
+    { name:'Dashboarding',         color:fc[1], idx:1 },
+    { name:'Consulting',           color:fc[2], idx:2 },
+    { name:'Analytics',            color:fc[3], idx:3 },
+    { name:'Advanced Analytics',   color:fc[4], idx:4 }
+  ];
+  const datasets = series.map(s => ({
+    label: s.name,
+    data: labels.map(y => rows[y][s.idx]),
+    backgroundColor: s.color,
+    borderWidth: 0,
+    borderRadius: 0,
+    barPercentage: isLight ? 0.82 : 0.92,
+    categoryPercentage: 0.92
+  }));
+
+  // Text-color helper: pick white or dark based on bg luminance
+  const pickTextColor = (hex) => {
+    const h = hex.replace('#','');
+    const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+    const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+    return lum > 0.6 ? '#1a1a1a' : '#ffffff';
+  };
+
+  // Per-segment data label plugin
+  const stackLabelsPlugin = {
+    id: 'stackLabels',
+    afterDatasetsDraw(chart){
+      const {ctx, data} = chart;
+      ctx.save();
+      ctx.font = `700 9.5px ${isLight ? 'Inter' : 'system-ui'}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        meta.data.forEach((bar, j) => {
+          const val = ds.data[j];
+          if (val >= 10) {
+            const cx = bar.x;
+            const cy = (bar.y + bar.base) / 2;
+            const segHeight = Math.abs(bar.base - bar.y);
+            if (segHeight >= 14) {
+              ctx.fillStyle = pickTextColor(ds.backgroundColor);
+              ctx.fillText(val + '%', cx, cy);
+            }
+          }
+        });
+      });
+      ctx.restore();
+    }
+  };
+
+  const ctx = document.getElementById('focusChart').getContext('2d');
+  focusChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    plugins: [ stackLabelsPlugin ],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          backgroundColor:T.tip,
+          borderColor:T.tipBrd,
+          borderWidth:1,
+          titleColor:T.tipTxt,
+          bodyColor:T.tipSub,
+          padding:10,
+          titleFont:{family: isLight ? 'Inter' : 'system-ui', weight:'600'},
+          bodyFont:{family: isLight ? 'Inter' : 'system-ui'},
+          callbacks: {
+            label: (c) => c.dataset.label + ': ' + c.parsed.y + '%'
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display:false },
+          ticks: { color:T.axis, font:{size:10,family: isLight ? 'Inter' : 'system-ui'} }
+        },
+        y: {
+          stacked: true,
+          max: 100,
+          grid: { color:T.grid },
+          border: { display:false },
+          ticks: {
+            color:T.axis,
+            font:{size:10,family: isLight ? 'Inter' : 'system-ui'},
+            callback: v => v + '%'
+          }
+        }
+      }
+    }
+  });
+
+  // Build custom legend
+  const legEl = document.getElementById('focus-legend');
+  legEl.innerHTML = series.map(s =>
+    `<div class="focus-leg-item"><span class="focus-leg-dot" style="background:${s.color}"></span>${s.name}</div>`
+  ).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+// ANALYTICS POV — MY 5 FAVOURITE CHARTS
+// ════════════════════════════════════════════════════════════════
+let povBuilt = false;
+let povInstances = [];
+
+function destroyPov(){
+  povInstances.forEach(c => { try{ c.destroy(); }catch(e){} });
+  povInstances = [];
+}
+
+// ── 1a. COVID bar + cumulative line ──
+function buildPovCombo1(){
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  // Synthetic NSW daily data pattern Jan-Sep 2020
+  const labels = [];
+  const bar = [];
+  const startWeek = new Date(2020,0,22);
+  const daily = [1,0,2,1,3,4,2,6,5,7,9,12,18,22,30,52,80,120,165,190,210,200,205,212,190,175,155,130,100,80,60,45,30,22,18,14,12,10,8,9,11,13,10,8,9,12,14,11,9,10,12,15,13,11,10,9,12,15,14,12,11,13,15,17,16,14,15,18,20,19,17,16,18,20,22,19,16];
+  const mmm = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];
+  let cum = 0; const line = [];
+  for(let i=0;i<daily.length;i++){
+    const d = new Date(startWeek); d.setDate(d.getDate() + i*3);
+    labels.push(`${mmm[d.getMonth()]} ${d.getDate()}`);
+    bar.push(daily[i]);
+    cum += daily[i]*3;
+    line.push(cum);
+  }
+  const ctx = document.getElementById('povCombo1').getContext('2d');
+  const inst = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        { type:'bar', label:'Media Release Cases', data:bar, backgroundColor: isLight ? '#9ec7e0' : '#4f8ef7', borderWidth:0, yAxisID:'y', barPercentage:.92, categoryPercentage:.92 },
+        { type:'line', label:'Cumulative cases', data:line, borderColor: isLight ? '#1a3a5f' : '#00d4aa', backgroundColor:'transparent', borderWidth:2, pointRadius:0, tension:.25, yAxisID:'y1' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'top',align:'end',labels:{font:{size:10,family: isLight?'Inter':'system-ui'},color:T.axis,boxWidth:10,padding:8}},
+        tooltip:{backgroundColor:T.tip,titleColor:T.tipTxt,bodyColor:T.tipSub,borderColor:T.tipBrd,borderWidth:1,padding:8}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:T.axis,font:{size:9},maxRotation:45,minRotation:45,autoSkip:true,maxTicksLimit:12}},
+        y:{position:'left',grid:{color:T.grid},ticks:{color:T.axis,font:{size:9.5}},title:{display:true,text:'Daily Cases',color:T.axis,font:{size:10}}},
+        y1:{position:'right',grid:{display:false},ticks:{color:T.axis,font:{size:9.5}},title:{display:true,text:'Cumulative',color:T.axis,font:{size:10}}}
+      }
+    }
+  });
+  povInstances.push(inst);
+}
+
+// ── 1b. Three LGA small multiples (growth vs positivity vs tests) ──
+function buildPovCombo2(){
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  const growthBlue = isLight ? '#1a3a5f' : '#4f8ef7';
+  const positOrange = isLight ? '#d97706' : '#f59e0b';
+  const barGrey = isLight ? '#9a9388' : '#4a5568';
+
+  // Synthetic "June → September 2021" patterns matching image shapes
+  const mkData = (shape) => {
+    const N = 38;
+    const growth = [], posit = [], tests = [];
+    for(let i=0;i<N;i++){
+      const t = i/(N-1);
+      let g, p;
+      if(shape === 'rest'){
+        g = (i<6?0:0.2) + (i>=6 && i<14?4*Math.exp(-Math.pow((i-10)/2.5,2)):0) + (i>=14?1+Math.sin(i*.5)*.5:0);
+        p = 0.02 + t*0.08 + Math.random()*.02;
+      } else if(shape === 'concern'){
+        g = (i<4?0:0.3) + (i>=4 && i<10?6*Math.exp(-Math.pow((i-7)/2,2)):0) + (i>=10 && i<16?3*Math.exp(-Math.pow((i-12)/2,2)):0) + (i>=16?Math.max(0.8,2-0.04*(i-16)):0);
+        p = 0.03 + t*0.65 + Math.sin(i*.4)*.05;
+      } else { // adjacent
+        g = (i<4?0:0.2) + (i>=4 && i<12?3.5*Math.exp(-Math.pow((i-8)/2.5,2)):0) + (i>=12?1+Math.sin(i*.6)*.8:0);
+        p = 0.02 + t*0.4 + Math.sin(i*.5)*.04;
+      }
+      growth.push(Math.max(0, g));
+      posit.push(Math.max(0, p*100));
+      tests.push(50 + Math.random()*40 + (shape==='concern'?30*t:10));
+    }
+    return {growth, posit, tests};
+  };
+
+  const labels = ['11 Jun','','','26 Jun','','','11 Jul','','','26 Jul','','','10 Aug','','','25 Aug','','','9 Sep','','','','','','','','','','','','','','','','','','',''];
+
+  const cfg = (lineCanvas, barCanvas, data) => {
+    const ctx1 = document.getElementById(lineCanvas).getContext('2d');
+    const inst = new Chart(ctx1, {
+      data:{
+        labels,
+        datasets:[
+          { type:'line', label:'Growth', data:data.growth, borderColor:growthBlue, backgroundColor:'transparent', borderWidth:1.6, pointRadius:0, tension:.3, yAxisID:'y' },
+          { type:'line', label:'Positivity', data:data.posit, borderColor:positOrange, backgroundColor:'transparent', borderWidth:1.6, pointRadius:0, tension:.3, yAxisID:'y1' }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{
+          x:{grid:{display:false},ticks:{color:T.axis,font:{size:8},autoSkip:false,maxRotation:0}},
+          y:{position:'left',min:0,max:7,grid:{color:T.grid,drawTicks:false},ticks:{color:growthBlue,font:{size:8},stepSize:1}},
+          y1:{position:'right',min:0,max:0.8,grid:{display:false},ticks:{color:positOrange,font:{size:8},callback:v=>v.toFixed(2)+'%'}}
+        },
+        elements:{line:{borderJoinStyle:'round'}}
+      }
+    });
+    povInstances.push(inst);
+
+    // Bar strip underneath
+    const ctx2 = document.getElementById(barCanvas).getContext('2d');
+    const inst2 = new Chart(ctx2, {
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{data:data.tests, backgroundColor:barGrey, borderWidth:0, barPercentage:1, categoryPercentage:1}]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{
+          x:{display:false},
+          y:{display:false,beginAtZero:true}
+        }
+      }
+    });
+    povInstances.push(inst2);
+  };
+
+  cfg('povCombo2a','povCombo2aBars', mkData('rest'));
+  cfg('povCombo2b','povCombo2bBars', mkData('concern'));
+  cfg('povCombo2c','povCombo2cBars', mkData('adjacent'));
+}
+
+// ── 2. Box plots ──
+function buildPovBox(){
+  if(!window['chartjs-chart-boxplot'] && !Chart.registry.controllers.get('boxplot')){ return; }
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  // Approx raw data reverse-engineered from image (per phase per outcome)
+  const data = {
+    lose: {
+      opening: [0.39,0.43,0.48,0.52,0.55,0.58,0.61,0.64,0.67,0.70,0.71,0.73,0.76,0.79,0.83,0.85,0.88,0.92,0.95,1.00],
+      midgame: [0.02,0.14,0.10,0.18,0.25,0.30,0.36,0.41,0.45,0.48,0.52,0.55,0.58,0.60,0.62,0.65,0.70,0.74,0.78,0.80],
+      endgame: [0.30,0.35,0.42,0.48,0.55,0.62,0.68,0.72,0.75,0.78,0.80,0.82]
+    },
+    win: {
+      opening: [0.40,0.52,0.60,0.65,0.67,0.70,0.75,0.78,0.80,0.83,0.85,0.88,0.90,0.92,0.95,0.97,0.99,1.00,1.00,1.00],
+      midgame: [0.32,0.38,0.53,0.58,0.62,0.65,0.68,0.70,0.73,0.75,0.78,0.80,0.82,0.83,0.85,0.88,0.92,0.95],
+      endgame: [0.55,0.58,0.60,0.64,0.68,0.72,0.77,0.80,0.83,0.86,0.88,0.90]
+    }
+  };
+  const ctx = document.getElementById('povBox').getContext('2d');
+  const inst = new Chart(ctx, {
+    type:'boxplot',
+    data:{
+      labels:['lose','win'],
+      datasets:[
+        { label:'opening acc', data:[data.lose.opening, data.win.opening],
+          backgroundColor: isLight ? 'rgba(173,206,230,.55)' : 'rgba(79,142,247,.25)',
+          borderColor: isLight ? '#6b9ad1' : '#4f8ef7', borderWidth:1, outlierBackgroundColor: isLight ? '#6b9ad1' : '#4f8ef7', itemRadius:3, itemBackgroundColor: isLight ? 'rgba(107,154,209,.6)' : '#4f8ef7' },
+        { label:'midgame acc', data:[data.lose.midgame, data.win.midgame],
+          backgroundColor: isLight ? 'rgba(30,58,95,.25)' : 'rgba(100,120,160,.3)',
+          borderColor: isLight ? '#1a3a5f' : '#8892a4', borderWidth:1, outlierBackgroundColor: isLight ? '#1a3a5f' : '#8892a4', itemRadius:3, itemBackgroundColor: isLight ? 'rgba(26,58,95,.6)' : '#8892a4' },
+        { label:'endgame acc', data:[data.lose.endgame, data.win.endgame],
+          backgroundColor: isLight ? 'rgba(245,166,35,.35)' : 'rgba(245,158,11,.3)',
+          borderColor: isLight ? '#d97706' : '#f59e0b', borderWidth:1, outlierBackgroundColor: isLight ? '#d97706' : '#f59e0b', itemRadius:3, itemBackgroundColor: isLight ? 'rgba(217,119,6,.6)' : '#f59e0b' }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'right',labels:{color:T.axis,font:{size:10,family: isLight?'Inter':'system-ui'},boxWidth:10,padding:8}},
+        tooltip:{backgroundColor:T.tip,titleColor:T.tipTxt,bodyColor:T.tipSub,borderColor:T.tipBrd,borderWidth:1}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:T.axis,font:{size:11,family:isLight?'Inter':'system-ui'}},title:{display:true,text:'W/L/D',color:T.axis,font:{size:10}}},
+        y:{min:0,max:1,grid:{color:T.grid},ticks:{color:T.axis,font:{size:10}}}
+      }
+    }
+  });
+  povInstances.push(inst);
+}
+
+// ── 3. Sankey (2 variants) ──
+function buildPovSankey(){
+  if(!Chart.registry.controllers.get('sankey')){ return; }
+  const T = palette();
+  const isLight = getTheme() === 'light';
+
+  // Colors per node
+  const nodeColors = {
+    WO: isLight ? '#4a7fa8' : '#4f8ef7',
+    LO: isLight ? '#1a3a5f' : '#1e3a6f',
+    win:  isLight ? '#c94f8b' : '#f472b6',
+    lose: isLight ? '#8cbde0' : '#7dd3fc',
+    draw: isLight ? '#3d9970' : '#34d399',
+    WOWMNO: isLight ? '#c94f33' : '#e05c5c',
+    WOLMNO: isLight ? '#4a7fa8' : '#4f8ef7',
+    WOWMLE: isLight ? '#a67c2a' : '#f59e0b',
+    WOWMWE: isLight ? '#2e6157' : '#34d399',
+    WOLMLE: isLight ? '#8b7355' : '#a78bfa',
+    WOLMWE: isLight ? '#9c5b7a' : '#f472b6',
+    WONONO: isLight ? '#1a3a5f' : '#1e3a6f',
+    LOLMNO: isLight ? '#2e3a55' : '#2e3a55',
+    LOWMNO: isLight ? '#4a7fa8' : '#4f8ef7',
+    LOWMWE: isLight ? '#6a4b8a' : '#a78bfa',
+    LOLMLE: isLight ? '#5a3a2a' : '#78350f',
+    LOWMLE: isLight ? '#a67c2a' : '#f59e0b',
+    LOLMWE: isLight ? '#b89345' : '#fbbf24',
+    LONONO: isLight ? '#2e6157' : '#14b8a6'
+  };
+  const colorFrom = c => nodeColors[c.dataset.data[c.dataIndex]?.from] || nodeColors.WO;
+  const colorTo = c => nodeColors[c.dataset.data[c.dataIndex]?.to] || nodeColors.win;
+
+  // --- Sankey 1: Opening result → game result
+  const flows1 = [
+    { from:'WO', to:'win',  flow: 32 },
+    { from:'WO', to:'lose', flow: 10 },
+    { from:'WO', to:'draw', flow: 3 },
+    { from:'LO', to:'win',  flow: 9 },
+    { from:'LO', to:'lose', flow: 28 },
+    { from:'LO', to:'draw', flow: 2 }
+  ];
+  const ctx1 = document.getElementById('povSankey1').getContext('2d');
+  const s1 = new Chart(ctx1, {
+    type:'sankey',
+    data:{ datasets:[{
+      data: flows1,
+      colorFrom: colorFrom,
+      colorTo: colorTo,
+      colorMode:'gradient',
+      borderWidth:0,
+      nodeWidth: 12,
+      nodePadding: 12,
+      labels: { WO:'WO', LO:'LO', win:'win', lose:'lose', draw:'draw' },
+      priority: { WO:0, LO:1, win:0, lose:1, draw:2 }
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:T.tip,titleColor:T.tipTxt,bodyColor:T.tipSub,borderColor:T.tipBrd,borderWidth:1}},
+      color: T.axis,
+      font: { family: isLight?'Inter':'system-ui', size: 11, weight:'600' }
+    }
+  });
+  povInstances.push(s1);
+
+  // --- Sankey 2: Opening → full path (simplified)
+  const flows2 = [
+    { from:'WO', to:'WOWMNO', flow: 16 },
+    { from:'WO', to:'WOLMNO', flow: 9 },
+    { from:'WO', to:'WOWMLE', flow: 6 },
+    { from:'WO', to:'WOWMWE', flow: 4 },
+    { from:'WO', to:'WOLMLE', flow: 4 },
+    { from:'WO', to:'WOLMWE', flow: 3 },
+    { from:'WO', to:'WONONO', flow: 3 },
+    { from:'LO', to:'LOLMNO', flow: 15 },
+    { from:'LO', to:'LOWMNO', flow: 10 },
+    { from:'LO', to:'LOWMWE', flow: 5 },
+    { from:'LO', to:'LOLMLE', flow: 4 },
+    { from:'LO', to:'LOWMLE', flow: 3 },
+    { from:'LO', to:'LOLMWE', flow: 2 },
+    { from:'LO', to:'LONONO', flow: 2 }
+  ];
+  const ctx2 = document.getElementById('povSankey2').getContext('2d');
+  const s2 = new Chart(ctx2, {
+    type:'sankey',
+    data:{ datasets:[{
+      data: flows2,
+      colorFrom: colorFrom,
+      colorTo: colorTo,
+      colorMode:'gradient',
+      borderWidth:0,
+      nodeWidth: 10,
+      nodePadding: 6
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:T.tip,titleColor:T.tipTxt,bodyColor:T.tipSub,borderColor:T.tipBrd,borderWidth:1}},
+      color: T.axis,
+      font: { family: isLight?'Inter':'system-ui', size: 9.5, weight:'600' }
+    }
+  });
+  povInstances.push(s2);
+}
+
+// ── 4. Funnels (CSS-based) ──
+function buildPovFunnels(){
+  const funnels = [
+    { title:'Cases by Age', pop:'low', data:[
+      ['0-19',29.8],['20-24',12.0],['25-29',10.7],['30-34',9.3],['35-39',7.3],
+      ['40-44',6.1],['45-49',5.6],['50-54',5.4],['55-59',4.7],['60-64',3.1],
+      ['65-69',1.8],['70+',4.1]
+    ]},
+    { title:'Hospitalisation by Age', pop:'mid', data:[
+      ['0-4',1.7],['05-11',1.4],['12-17',2.5],['18-29',16.5],['30-49',27.8],
+      ['50-59',18.4],['60-69',12.2],['70-79',9.8],['80+',9.8]
+    ]},
+    { title:'ICU by Age', pop:'high', data:[
+      ['0-4',0.00],['05-11',0.20],['12-17',1.84],['18-29',12.91],['30-49',17.21],
+      ['50-59',24.18],['60-69',22.13],['70-79',15.16],['80+',6.35]
+    ]}
+  ];
+  const root = document.getElementById('pov-funnels');
+  if(!root) return;
+  // Calculate max per funnel for width scaling
+  const html = funnels.map(f => {
+    const mx = Math.max(...f.data.map(r=>r[1]));
+    return `<div class="pov-funnel">
+      <div class="pov-funnel-h">${f.title}</div>
+      ${f.data.map(([lab,v]) => {
+        const wPct = mx > 0 ? (v/mx*100) : 0;
+        const cls = v < 3 ? 'low' : (v < 15 ? 'mid' : '');
+        const dec = v < 1 ? 2 : 1;
+        const inside = wPct >= 28;   // show % inside only when bar is wide enough
+        const labelInside = inside ? `${v.toFixed(dec)}%` : '';
+        const labelOutside = inside ? '' : `${v.toFixed(dec)}%`;
+        return `<div class="pov-funnel-row">
+          <div class="pov-funnel-label">${lab}</div>
+          <div class="pov-funnel-barwrap">
+            <div class="pov-funnel-bar ${cls}" style="width:${wPct.toFixed(2)}%">${labelInside}</div>
+          </div>
+          <div class="pov-funnel-val">${labelOutside}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+  root.innerHTML = html;
+}
+
+// ── 5. NBA Bar chart ──
+function buildPovBar(){
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  const E = isLight ? '#9bd0e6' : '#7dd3fc';      // Eastern
+  const W = isLight ? '#8b2e3f' : '#e05c5c';      // Western
+  const teams = [
+    ['Bulls',      21711,'E'],['Pistons',    20917,'E'],['Wizards',    20647,'E'],['Cavaliers',  20562,'E'],
+    ['Jazz',       20188,'W'],['Trail Blazers',19902,'W'],['Raptors',    19800,'E'],['Knicks',     19812,'E'],
+    ['Heat',       19600,'E'],['Warriors',   19596,'W'],['Timberwolves',19356,'W'],['Mavericks',  19200,'W'],
+    ['Thunder',    19163,'W'],['Nuggets',    19155,'W'],['Clippers',   19060,'W'],['Lakers',     19068,'W'],
+    ['Hornets',    19077,'E'],['Hawks',      18729,'E'],['Spurs',      18797,'W'],['Celtics',    18624,'E'],
+    ['Pacers',     18400,'E'],['Grizzlies',  18119,'W'],['Rockets',    18055,'W'],['Bucks',      17500,'E'],
+    ['Kings',      17583,'W']
+  ];
+  teams.sort((a,b)=>b[1]-a[1]);
+  const ctx = document.getElementById('povBar').getContext('2d');
+  const inst = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: teams.map(t=>t[0]),
+      datasets:[{
+        data: teams.map(t=>t[1]),
+        backgroundColor: teams.map(t=> t[2]==='E'?E:W),
+        borderWidth:0,
+        barPercentage:.86, categoryPercentage:.92
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:T.tip,titleColor:T.tipTxt,bodyColor:T.tipSub,borderColor:T.tipBrd,borderWidth:1,
+          callbacks:{ label:c=>'Capacity: '+c.parsed.y.toLocaleString() }
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:T.axis,font:{size:9.5,family:isLight?'Inter':'system-ui'},maxRotation:55,minRotation:55}},
+        y:{beginAtZero:true,grid:{color:T.grid},border:{display:false},ticks:{color:T.axis,font:{size:10},callback:v=>(v/1000)+'K'},title:{display:true,text:'ARENACAPACITY (Sum)',color:T.axis,font:{size:10}}}
+      }
+    }
+  });
+  povInstances.push(inst);
+}
+
+// ── Data build scatter plots (3PT FG% vs 3PT attempted) ──
+function _scatterData(){
+  // Seeded pseudo-random for reproducibility
+  let s = 42;
+  const rand = () => { s = (s*9301+49297)%233280; return s/233280; };
+  const pts = [];
+  // Cluster 1: most shooters — low volume, varied %
+  for(let i=0;i<260;i++){
+    const x = rand()*3;
+    const y = Math.max(0, Math.min(1, 0.30 + rand()*0.25 - x*0.02 + (rand()-0.5)*0.25));
+    pts.push({x, y});
+  }
+  // Cluster 2: mid volume — shape tightens
+  for(let i=0;i<120;i++){
+    const x = 3 + rand()*3;
+    const y = Math.max(0, Math.min(1, 0.33 + (rand()-0.5)*0.20 - (x-3)*0.01));
+    pts.push({x, y});
+  }
+  // Cluster 3: high volume — few shooters, ~0.35-0.45%
+  for(let i=0;i<40;i++){
+    const x = 6 + rand()*4;
+    const y = Math.max(0, Math.min(1, 0.37 + (rand()-0.4)*0.12));
+    pts.push({x, y});
+  }
+  // Outlier high-% low-volume shooters
+  for(let i=0;i<14;i++){
+    const x = rand()*2.5;
+    const y = 0.65 + rand()*0.35;
+    pts.push({x, y});
+  }
+  return pts;
+}
+
+function _scatterOpts(T, isLight){
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+    scales:{
+      x:{type:'linear',min:0,max:10,grid:{color:T.grid},border:{display:false},ticks:{color:T.axis,font:{size:9}},title:{display:true,text:'FG3A',color:T.axis,font:{size:10}}},
+      y:{type:'linear',min:0,max:1.05,grid:{color:T.grid},border:{display:false},ticks:{color:T.axis,font:{size:9},stepSize:0.2,callback:v=>v.toFixed(1)},title:{display:true,text:'FG3_PCT',color:T.axis,font:{size:10}}}
+    }
+  };
+}
+
+function _refPlugin(opts, T, isLight){
+  return {
+    id:'refLines_'+Math.random().toString(36).slice(2,8),
+    afterDatasetsDraw(chart){
+      const {ctx, chartArea:a, scales:{x,y}} = chart;
+      if(opts.showAvg){
+        ctx.save();
+        ctx.setLineDash([6,4]);
+        ctx.strokeStyle = isLight?'#1a1a1a':'#e8eaf0';
+        ctx.lineWidth = 1.2;
+        const yy = y.getPixelForValue(opts.avgY || 0.355);
+        ctx.beginPath(); ctx.moveTo(a.left, yy); ctx.lineTo(a.right, yy); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = '600 9px '+(isLight?'Inter':'system-ui');
+        ctx.fillStyle = T.axis;
+        ctx.textAlign = 'right';
+        ctx.fillText('League Avg (5 yr avg)', a.right-4, yy-4);
+        ctx.restore();
+      }
+      if(opts.showVol){
+        ctx.save();
+        ctx.setLineDash([4,4]);
+        ctx.strokeStyle = isLight?'#6b9ad1':'#4f8ef7';
+        ctx.lineWidth = 1.2;
+        const xx = x.getPixelForValue(opts.volX || 2);
+        ctx.beginPath(); ctx.moveTo(xx, a.top); ctx.lineTo(xx, a.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+      if(opts.labels){
+        ctx.save();
+        ctx.font = '700 8.5px '+(isLight?'Inter':'system-ui');
+        ctx.textAlign = 'left';
+        opts.labels.forEach(n => {
+          const px = x.getPixelForValue(n.x);
+          const py = y.getPixelForValue(n.y);
+          ctx.fillStyle = n.hero ? '#d97706' : (isLight ? '#333' : '#e8eaf0');
+          // small dodge for overlapping labels
+          ctx.fillText(n.name, px+6, py-3);
+        });
+        ctx.restore();
+      }
+    }
+  };
+}
+
+function buildPovScatter1(){
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  const fill = isLight ? 'rgba(139,46,63,.55)' : 'rgba(244,114,182,.55)';
+  const ctx = document.getElementById('povScatter1').getContext('2d');
+  const inst = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[{ data:_scatterData(), backgroundColor:fill, borderColor:'transparent', pointRadius:2.5, pointHoverRadius:4 }] },
+    options: _scatterOpts(T, isLight),
+    plugins: [ _refPlugin({}, T, isLight) ]
+  });
+  povInstances.push(inst);
+}
+
+function buildPovScatter2(){
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  const fill = isLight ? 'rgba(139,46,63,.55)' : 'rgba(244,114,182,.55)';
+  const ctx = document.getElementById('povScatter2').getContext('2d');
+  const inst = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[{ data:_scatterData(), backgroundColor:fill, borderColor:'transparent', pointRadius:2.5, pointHoverRadius:4 }] },
+    options: _scatterOpts(T, isLight),
+    plugins: [ _refPlugin({ showAvg:true, showVol:true, volX:2, avgY:0.355 }, T, isLight) ]
+  });
+  povInstances.push(inst);
+}
+
+function buildPovScatter3(){
+  const T = palette();
+  const isLight = getTheme() === 'light';
+  const fill = isLight ? 'rgba(139,46,63,.30)' : 'rgba(244,114,182,.30)';
+  const base = _scatterData();
+  const named = [
+    { x:9.0, y:0.42, name:'Stephen Curry', hero:true },
+    { x:7.8, y:0.41, name:'Klay Thompson' },
+    { x:5.2, y:0.44, name:'Desmond Bane' },
+    { x:4.1, y:0.48, name:'Mitch Ballock' },
+    { x:3.6, y:0.44, name:'Scottie Wilbekin' },
+    { x:2.5, y:0.62, name:'Jerome Randle' },
+    { x:1.1, y:0.99, name:'Manny Senglin' },
+    { x:2.2, y:0.60, name:'Jamaree Bouyea' },
+    { x:3.1, y:0.45, name:'Duje Dukan' },
+    { x:4.5, y:0.20, name:'Caleb Homesley' },
+    { x:3.1, y:0.24, name:'Kenny Hasbrouck' }
+  ];
+  const curry = named.find(n=>n.hero);
+  const others = named.filter(n=>!n.hero);
+  const ctx = document.getElementById('povScatter3').getContext('2d');
+  const inst = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets:[
+      { data:base, backgroundColor:fill, borderColor:'transparent', pointRadius:2.2, pointHoverRadius:3.5 },
+      { data:others, backgroundColor: isLight?'#8b2e3f':'#f472b6', pointRadius:4.5, pointHoverRadius:6 },
+      { data:[curry], backgroundColor:'#f59e0b', borderColor:'#d97706', borderWidth:2, pointRadius:7, pointHoverRadius:9 }
+    ]},
+    options: _scatterOpts(T, isLight),
+    plugins: [ _refPlugin({ labels: named }, T, isLight) ]
+  });
+  povInstances.push(inst);
+}
+
+function buildPov(){
+  destroyPov();
+  buildPovCombo1();
+  buildPovCombo2();
+  buildPovBox();
+  buildPovSankey();
+  buildPovFunnels();
+  buildPovBar();
+  buildPovScatter1();
+  buildPovScatter2();
+  buildPovScatter3();
+  povBuilt = true;
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  buildGantt();
+  buildIndustryChart();
+  buildFocusChart();
+  buildSkillBars();
+  animateCounters();
+});
+</script>
+</body>
+</html>
