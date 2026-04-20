@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Chess Games — Damjan Vlastelica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  (function(){try{var t=localStorage.getItem('cd-theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<style>
+:root{
+  --bg:#fbfaf6;--surface:#ffffff;--surface2:#f5f3ec;--border:#e5e1d5;--border-strong:#c9c4b6;
+  --text:#1a1a1a;--text-muted:#5a5750;--text-subtle:#8a8680;
+  --accent:#1a3a5f;--accent2:#2a4e7a;--accent3:#8b2e3f;--accent4:#a67c2a;--accent5:#3f6b4e;
+  --win:#3f6b4e;--loss:#8b2e3f;--draw:#8a8680;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg:0 4px 16px rgba(26,58,95,0.08);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Inter','Helvetica Neue',sans-serif;
+  --mono:'JetBrains Mono',Consolas,monospace;
+}
+[data-theme="dark"]{
+  --bg:#0b1220;--surface:#121a2c;--surface2:#1a2340;--border:#22304f;--border-strong:#2f3e63;
+  --text:#e7ecf5;--text-muted:#a6b0c4;--text-subtle:#6b7895;
+  --accent:#60a5fa;--accent2:#3b82f6;--accent3:#f472b6;--accent4:#f59e0b;--accent5:#34d399;
+  --win:#34d399;--loss:#f472b6;--draw:#94a3b8;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.3);
+  --shadow-lg:0 4px 18px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:0}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrap{max-width:1280px;margin:0 auto;padding:36px 32px 80px}
+
+/* Masthead */
+.masthead{border-top:6px solid var(--text);border-bottom:1px solid var(--border);padding:22px 0 24px;margin-bottom:28px;position:relative}
+.mast-kicker{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.14em;font-size:11px;color:var(--text-muted);margin-bottom:10px}
+.mast-title{font-family:var(--serif);font-weight:900;font-size:54px;line-height:1.02;letter-spacing:-1.2px;margin-bottom:12px}
+.mast-title em{font-style:italic;color:var(--accent3)}
+.mast-sub{font-family:var(--serif);font-style:italic;font-weight:400;font-size:19px;color:var(--text-muted);margin-bottom:14px;max-width:780px}
+.mast-byline{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--text-subtle);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;flex-wrap:wrap}
+.mast-byline .sep{color:var(--border-strong)}
+
+.theme-toggle{position:absolute;top:22px;right:0;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:999px;cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;display:flex;gap:8px;align-items:center;transition:all .2s}
+.theme-toggle:hover{border-color:var(--text);background:var(--surface2)}
+
+/* Section masthead */
+.sec-mast{margin:44px 0 18px;border-top:1px solid var(--border-strong);padding-top:18px}
+.sec-mast .kick{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.16em;color:var(--accent3);margin-bottom:6px}
+.sec-mast h2{font-family:var(--serif);font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-0.5px;margin-bottom:6px}
+.sec-mast .sub{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text-muted);max-width:800px}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:4px}
+.kpi{background:var(--surface);border:1px solid var(--border);padding:16px 16px 14px;border-radius:2px;position:relative;box-shadow:var(--shadow-sm)}
+.kpi .label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:8px}
+.kpi .val{font-family:var(--serif);font-weight:800;font-size:30px;line-height:1;letter-spacing:-0.8px;color:var(--text)}
+.kpi .val.sm{font-size:22px}
+.kpi .sub{font-size:11px;color:var(--text-muted);margin-top:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em}
+.kpi.accent .val{color:var(--accent)}
+.kpi.win .val{color:var(--win)}
+.kpi.loss .val{color:var(--loss)}
+@media (max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+
+/* Cards */
+.grid{display:grid;gap:14px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--border);padding:18px 20px 20px;border-radius:2px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.card-h{font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.2;letter-spacing:-0.2px;color:var(--text);margin-bottom:4px}
+.card-sh{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-subtle);margin-bottom:14px}
+.card-note{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text-muted);line-height:1.5}
+
+.chart-wrap{position:relative;width:100%}
+.chart-h180{height:180px}
+.chart-h220{height:220px}
+.chart-h260{height:260px}
+.chart-h300{height:300px}
+.chart-h320{height:320px}
+.chart-h360{height:360px}
+
+/* Callout */
+.callout{background:var(--surface2);border-left:3px solid var(--accent3);padding:14px 18px;margin:14px 0;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--text-muted);line-height:1.55}
+.callout b{color:var(--text);font-weight:700;font-style:normal}
+
+/* Horizontal bar opening rows */
+.op-table{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.op-row{display:grid;grid-template-columns:1fr 200px 70px;gap:10px;align-items:center;padding:5px 0;border-bottom:1px dotted var(--border);font-size:12.5px}
+.op-row:last-child{border-bottom:none}
+.op-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.op-name .eco{font-family:var(--mono);font-size:10.5px;color:var(--text-subtle);margin-right:6px;background:var(--surface2);padding:1px 5px;border-radius:2px}
+.op-bar{display:flex;height:14px;border-radius:2px;overflow:hidden;background:var(--surface2)}
+.op-bar .seg-w{background:var(--win)}
+.op-bar .seg-l{background:var(--loss)}
+.op-bar .seg-d{background:var(--draw)}
+.op-wrate{font-family:var(--mono);font-size:11px;text-align:right;color:var(--text)}
+.op-wrate .n{color:var(--text-subtle);margin-left:4px;font-size:10px}
+
+/* Streaks block */
+.streak-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.streak{background:var(--surface2);padding:14px;border-radius:2px;border:1px solid var(--border)}
+.streak .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-subtle)}
+.streak .v{font-family:var(--serif);font-size:26px;font-weight:800;color:var(--accent);margin-top:4px}
+.streak .s{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* Footer / methodology */
+.foot{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-size:12px;color:var(--text-subtle);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;line-height:1.6}
+.foot a{color:var(--text-subtle);text-decoration:underline}
+
+.badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em}
+.badge.warn{border-color:var(--accent4);color:var(--accent4)}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><span id="t-icon">◐</span><span id="t-label">Dark</span></button>
+  <div class="mast-kicker">Chess Analytics · Lichess</div>
+  <h1 class="mast-title">My first <em>1,528</em> chess games</h1>
+  <p class="mast-sub">A data-led look at how <b>Damjanv</b> has been playing on Lichess since August 2023 — the ratings arc, the opening repertoire, and the checkmate that keeps getting me.</p>
+  <div class="mast-byline">
+    <span>Damjan Vlastelica</span>
+    <span class="sep">·</span>
+    <span id="pulled">Pulled —</span>
+    <span class="sep">·</span>
+    <span><a href="https://lichess.org/@/Damjanv" target="_blank">lichess.org/@/Damjanv</a></span>
+    <span class="sep">·</span>
+    <span><a href="Damjan-Vlastelica-Dashboard-CV.html">← Back to CV</a></span>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-row" id="kpi-row"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: RECORD -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 1 · The overall record</div>
+  <h2>Halfway there, to 50%</h2>
+  <p class="sub">At nearly 1,500 decided games, the ledger sits just below an even split — a handful more losses than wins, and draws are a rarity.</p>
+</div>
+<div class="grid grid-3">
+  <div class="card"><div class="card-h">Games won / lost / drew</div><div class="card-sh">All games · all time controls</div><div class="chart-wrap chart-h220"><canvas id="c-wld"></canvas></div></div>
+  <div class="card"><div class="card-h">Win rate by colour</div><div class="card-sh">Does side of the board matter?</div><div class="chart-wrap chart-h220"><canvas id="c-color"></canvas></div></div>
+  <div class="card"><div class="card-h">Win rate by time control</div><div class="card-sh">Rapid dominates the sample</div><div class="chart-wrap chart-h220"><canvas id="c-speed"></canvas></div></div>
+</div>
+<div class="callout" id="co-record"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: RATING -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 2 · The rating journey</div>
+  <h2>Peak, trough, and the long grind</h2>
+  <p class="sub">Rapid rating across every game played — one dot, one game — with peak, low and current points highlighted.</p>
+</div>
+<div class="card">
+  <div class="card-h">Rapid rating over time</div>
+  <div class="card-sh">Every rapid game · from first rated game to today</div>
+  <div class="chart-wrap chart-h360"><canvas id="c-rating"></canvas></div>
+</div>
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">50-game rolling win rate</div><div class="card-sh">Smoothed form — volatility of performance</div><div class="chart-wrap chart-h260"><canvas id="c-rolling"></canvas></div></div>
+  <div class="card"><div class="card-h">Record when ELO-favoured</div><div class="card-sh">Win rate bucketed by rating gap at game start</div><div class="chart-wrap chart-h260"><canvas id="c-favour"></canvas></div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: ENDINGS -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 3 · How the games end</div>
+  <h2>Wins come by resignation, losses by checkmate</h2>
+  <p class="sub">A clear asymmetry: opponents resign to me, but when I lose, it's more often the mate on the board than a forced surrender.</p>
+</div>
+<div class="grid grid-3">
+  <div class="card"><div class="card-h">My wins end in…</div><div class="card-sh">Termination method across all wins</div><div class="chart-wrap chart-h260"><canvas id="c-wend"></canvas></div></div>
+  <div class="card"><div class="card-h">My losses end in…</div><div class="card-sh">Termination method across all losses</div><div class="chart-wrap chart-h260"><canvas id="c-lend"></canvas></div></div>
+  <div class="card"><div class="card-h">Draws</div><div class="card-sh">Only 45 in 1,528 games — a rare event</div><div class="chart-wrap chart-h260"><canvas id="c-dend"></canvas></div></div>
+</div>
+
+<!-- Mating piece -->
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">Mating piece — when I deliver</div><div class="card-sh">The piece that gave the final check</div><div class="chart-wrap chart-h220"><canvas id="c-mate-g"></canvas></div></div>
+  <div class="card"><div class="card-h">…and when I get mated</div><div class="card-sh">Most common mating piece against me</div><div class="chart-wrap chart-h220"><canvas id="c-mate-r"></canvas></div></div>
+</div>
+<div class="callout" id="co-mate"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: OPENINGS -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 4 · Openings</div>
+  <h2>The Caro-Kann shadow</h2>
+  <p class="sub">Of the 1,527 games with an identified opening, the top 15 carry most of the volume — and the Caro-Kann Defence is the one I face most often by a wide margin.</p>
+</div>
+<div class="card">
+  <div class="card-h">Top openings — frequency and result split</div>
+  <div class="card-sh">Minimum 15 games · sorted by volume · segments show wins / losses / draws</div>
+  <div class="op-table" id="op-table"></div>
+</div>
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">Games by ECO family</div><div class="card-sh">A = flank openings · B = semi-open · C = open (1.e4 e5) · D = closed (1.d4 d5) · E = Indian defences</div><div class="chart-wrap chart-h260"><canvas id="c-family"></canvas></div></div>
+  <div class="card"><div class="card-h">Win % by ECO family</div><div class="card-sh">Min 20 games included</div><div class="chart-wrap chart-h260"><canvas id="c-familywin"></canvas></div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: MOVES -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 5 · Game length</div>
+  <h2>Short wins, short losses, long draws</h2>
+  <p class="sub">Wins and losses average around 30 moves. Draws take nearly twice as long — the board usually simplifies before anyone will concede.</p>
+</div>
+<div class="grid grid-2">
+  <div class="card"><div class="card-h">Game length by result</div><div class="card-sh">Distribution of full moves · 5-move buckets</div><div class="chart-wrap chart-h300"><canvas id="c-movehist"></canvas></div></div>
+  <div class="card"><div class="card-h">Average moves played</div><div class="card-sh">By result · ended games only</div><div class="chart-wrap chart-h300"><canvas id="c-moveavg"></canvas></div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: PHASES & MATERIAL -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 5½ · Phases &amp; material</div>
+  <h2>When games end, and how much material was on the board</h2>
+  <p class="sub">Where my games terminate and the material balance I actually carry into the final position. Material counted with standard values (P=1, N=B=3, R=5, Q=9).</p>
+</div>
+<div class="grid grid-2">
+  <div class="card"><div class="card-h">Where games end</div><div class="card-sh">Result share by ending phase (move count at the final move)</div><div class="chart-wrap chart-h320"><canvas id="c-phase"></canvas></div></div>
+  <div class="card"><div class="card-h">Win rate by ending phase</div><div class="card-sh">Decisive win rate per phase · draws excluded</div><div class="chart-wrap chart-h320"><canvas id="c-phasewin"></canvas></div></div>
+</div>
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">Material at end of game</div><div class="card-sh">My material minus opponent's · bucketed · chess.js board simulation</div><div class="chart-wrap chart-h320"><canvas id="c-mat"></canvas></div></div>
+  <div class="card"><div class="card-h">Material trajectory</div><div class="card-sh">Average (my − opp) material at move 10, 20, 30 · by final result</div><div class="chart-wrap chart-h320"><canvas id="c-mattraj"></canvas></div></div>
+</div>
+<div style="margin-top:14px" id="mat-callout" class="callout"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: ACTIVITY & STREAKS -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 6 · Activity &amp; streaks</div>
+  <h2>When I play and the runs I go on</h2>
+  <p class="sub">Games per month and the longest hot and cold streaks on record.</p>
+</div>
+<div class="card">
+  <div class="card-h">Games per month</div>
+  <div class="card-sh">All time controls · stacked by result</div>
+  <div class="chart-wrap chart-h300"><canvas id="c-month"></canvas></div>
+</div>
+<div class="streak-grid" style="margin-top:14px" id="streak-grid"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: FIRST MOVES -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 7 · Repertoire</div>
+  <h2>What I open with</h2>
+  <p class="sub">My most common first moves as White, and replies as Black, with win rates alongside.</p>
+</div>
+<div class="grid grid-2">
+  <div class="card"><div class="card-h">My first move as White</div><div class="card-sh">Most-played openings · min 10 games</div><div class="chart-wrap chart-h300"><canvas id="c-fmw"></canvas></div></div>
+  <div class="card"><div class="card-h">My reply as Black</div><div class="card-sh">Most-played replies · min 10 games</div><div class="chart-wrap chart-h300"><canvas id="c-fmb"></canvas></div></div>
+</div>
+
+<!-- FOOTER / METHOD -->
+<div class="foot">
+  <div><b>Methodology.</b> Data pulled from the Lichess public API (<code>/api/games/user/damjanv</code>) then aggregated locally. Ratings shown are post-game (pre-game + rating change). "Decisive win %" = wins ÷ (wins + losses), excluding draws. Material at end-of-game computed by simulating SAN moves with chess.js; values are standard (P=1, N=B=3, R=5, Q=9). ECO family derives from the opening's ECO-code letter.</div>
+  <div style="margin-top:10px">Damjan Vlastelica · <a href="https://github.com/Damjanv1/cv-dashboard">github.com/Damjanv1/cv-dashboard</a></div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ==== DATA (injected) ====
+const SUMMARY = __DATA_PLACEHOLDER__;
+
+// ==== THEME ====
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('cd-theme', next); } catch(e){}
+  document.getElementById('t-label').textContent = next === 'dark' ? 'Light' : 'Dark';
+  renderAll();
+}
+(function(){ document.getElementById('t-label').textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark'; })();
+
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function cssvar(n){ return css('--' + n); }
+
+function palette(){
+  return {
+    text: cssvar('text'),
+    muted: cssvar('text-muted'),
+    subtle: cssvar('text-subtle'),
+    border: cssvar('border'),
+    accent: cssvar('accent'),
+    accent2: cssvar('accent2'),
+    accent3: cssvar('accent3'),
+    accent4: cssvar('accent4'),
+    accent5: cssvar('accent5'),
+    win: cssvar('win'),
+    loss: cssvar('loss'),
+    draw: cssvar('draw'),
+  };
+}
+
+// ==== HELPERS ====
+const fmt = (n, d=0) => n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (n, d=1) => (n * 100).toFixed(d) + '%';
+const _charts = [];
+function mkChart(id, cfg){
+  const el = document.getElementById(id);
+  if (!el) return null;
+  try {
+    const existing = Chart.getChart(el);
+    if (existing) existing.destroy();
+    const c = new Chart(el, cfg);
+    _charts.push(c);
+    return c;
+  } catch (e) {
+    console.error('Chart error on ' + id, e);
+    return null;
+  }
+}
+function destroyAll(){ _charts.forEach(c => { try { c.destroy(); } catch(e){} }); _charts.length = 0; }
+// Safe wrapper — one render failing shouldn't nuke the rest
+function safe(name, fn, p){ try { fn(p); } catch(e){ console.error('Render error in ' + name, e); } }
+
+// ==== RENDER ALL ====
+function renderAll(){
+  destroyAll();
+  const p = palette();
+  Chart.defaults.color = p.muted;
+  Chart.defaults.borderColor = p.border;
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size = 11;
+
+  safe('KPIs', renderKPIs, p);
+  safe('WLD', renderWLD, p);
+  safe('Color', renderColor, p);
+  safe('Speed', renderSpeed, p);
+  safe('Callouts', renderCallouts, p);
+  safe('Rating', renderRating, p);
+  safe('Rolling', renderRolling, p);
+  safe('Favour', renderFavour, p);
+  safe('Endings', renderEndings, p);
+  safe('Mating', renderMating, p);
+  safe('Openings', renderOpenings, p);
+  safe('Families', renderFamilies, p);
+  safe('Moves', renderMoves, p);
+  safe('Phases', renderPhases, p);
+  safe('Material', renderMaterial, p);
+  safe('MaterialTraj', renderMaterialTraj, p);
+  safe('MaterialCallout', renderMaterialCallout, p);
+  safe('Month', renderMonth, p);
+  safe('Streaks', renderStreaks, p);
+  safe('FirstMoves', renderFirstMoves, p);
+}
+
+// ==== KPIs ====
+function renderKPIs(p){
+  const k = SUMMARY.kpi;
+  const pulled = new Date(SUMMARY.meta.pulledAt);
+  document.getElementById('pulled').textContent = 'Pulled ' + pulled.toISOString().slice(0,10);
+  const first = new Date(SUMMARY.meta.firstGame).toISOString().slice(0,10);
+  const last = new Date(SUMMARY.meta.lastGame).toISOString().slice(0,10);
+  const cards = [
+    { label: 'Games', val: fmt(k.total), sub: first + ' → ' + last, cls: '' },
+    { label: 'Wins', val: fmt(k.wins), sub: pct(k.wins/k.total), cls: 'win' },
+    { label: 'Losses', val: fmt(k.losses), sub: pct(k.losses/k.total), cls: 'loss' },
+    { label: 'Draws', val: fmt(k.draws), sub: pct(k.draws/k.total), cls: '' },
+    { label: 'Rapid rating', val: fmt(k.rapidRatingCurrent), sub: 'peak ' + k.rapidPeak + ' · low ' + k.rapidLow, cls: 'accent' },
+    { label: 'Decisive win %', val: k.winPctDecisive.toFixed(1) + '%', sub: 'of wins+losses', cls: '' },
+  ];
+  document.getElementById('kpi-row').innerHTML = cards.map(c =>
+    `<div class="kpi ${c.cls}"><div class="label">${c.label}</div><div class="val">${c.val}</div><div class="sub">${c.sub}</div></div>`
+  ).join('');
+}
+
+// ==== WIN/LOSS/DRAW ====
+function renderWLD(p){
+  const k = SUMMARY.kpi;
+  mkChart('c-wld', {
+    type: 'bar',
+    data: { labels: ['Won', 'Lost', 'Drawn'], datasets: [{ data: [k.wins, k.losses, k.draws], backgroundColor: [p.win, p.loss, p.draw], borderWidth: 0, maxBarThickness: 80 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, datalabelOutside: true, xPct: false, xTitle: 'Games', yTitle: 'Result' })
+  });
+}
+
+// ==== BY COLOUR ====
+function renderColor(p){
+  const w = SUMMARY.byColor.white, b = SUMMARY.byColor.black;
+  const wPctW = w.w/(w.w+w.l+w.d), wPctB = b.w/(b.w+b.l+b.d);
+  mkChart('c-color', {
+    type: 'bar',
+    data: { labels: ['As White', 'As Black'], datasets: [
+      { label: 'Win %', data: [wPctW*100, wPctB*100], backgroundColor: [p.accent, p.accent3], borderWidth: 0, maxBarThickness: 50 }
+    ]},
+    options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, datalabelOutside: true, max: 60, xTitle: 'Win rate', yTitle: 'Colour' })
+  });
+}
+
+// ==== BY SPEED ====
+function renderSpeed(p){
+  const keys = Object.keys(SUMMARY.bySpeed).filter(k => SUMMARY.bySpeed[k].n >= 5);
+  const labels = keys.map(k => k[0].toUpperCase() + k.slice(1));
+  const ns = keys.map(k => SUMMARY.bySpeed[k].n);
+  const wp = keys.map(k => { const s = SUMMARY.bySpeed[k]; return s.w/(s.w+s.l+s.d) * 100; });
+  mkChart('c-speed', {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Win %', data: wp, backgroundColor: keys.map(k => k === 'rapid' ? p.accent : p.accent4), borderWidth: 0, maxBarThickness: 45 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, datalabelOutside: true, max: 60, extraLabel: (i) => ns[i] + ' games', xTitle: 'Win rate', yTitle: 'Time control' })
+  });
+}
+
+// ==== CALLOUTS ====
+function renderCallouts(p){
+  const k = SUMMARY.kpi;
+  const wPctW = SUMMARY.byColor.white.w/(SUMMARY.byColor.white.w + SUMMARY.byColor.white.l + SUMMARY.byColor.white.d);
+  const wPctB = SUMMARY.byColor.black.w/(SUMMARY.byColor.black.w + SUMMARY.byColor.black.l + SUMMARY.byColor.black.d);
+  const colorGap = Math.abs(wPctW - wPctB) * 100;
+  const favColor = wPctW > wPctB ? 'White' : 'Black';
+  document.getElementById('co-record').innerHTML =
+    `Across <b>${fmt(k.total)} games</b> the record is <b>${fmt(k.wins)} / ${fmt(k.losses)} / ${fmt(k.draws)}</b> — a <b>${k.winPct}%</b> overall win rate. The colour gap is remarkably small (just <b>${colorGap.toFixed(1)} pts</b> in favour of ${favColor}), which suggests my play doesn't hinge on side selection. Draws are almost a rounding error at <b>${(k.draws/k.total*100).toFixed(1)}%</b>.`;
+
+  const mg = SUMMARY.matingPiece.given, mr = SUMMARY.matingPiece.received;
+  const myQ = mg.Queen||0, oppQ = mr.Queen||0;
+  const myMates = Object.values(mg).reduce((a,b)=>a+b,0);
+  const oppMates = Object.values(mr).reduce((a,b)=>a+b,0);
+  document.getElementById('co-mate').innerHTML =
+    `Opponents checkmate me <b>${oppMates}</b> times vs <b>${myMates}</b> the other way — the Queen accounts for <b>${oppQ}</b> (${(oppQ/oppMates*100).toFixed(0)}%) of mates against me vs <b>${myQ}</b> (${myQ? (myQ/myMates*100).toFixed(0) : 0}%) of mates I deliver. The delta says: queen safety and king safety in the late middlegame are where the most points are leaking.`;
+}
+
+// ==== RATING ====
+function renderRating(p){
+  // Use post-game rating (pre-game + ratingDiff). Prefer SUMMARY.ratingAfter if present, else fall back to raw pre-game rating.
+  const rawPts = (SUMMARY.ratingAfter && SUMMARY.ratingAfter.rapid && SUMMARY.ratingAfter.rapid.length) ? SUMMARY.ratingAfter.rapid : SUMMARY.ratingOverTime.rapid;
+  // Downsample to ONE point per calendar day but keep the HIGHEST rating of that day,
+  // so the line's peak matches the KPI "Rapid peak" and the Peak annotation lands on a visible point.
+  const byDay = new Map();
+  rawPts.forEach(pp => {
+    const d = new Date(pp[0]);
+    const key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');
+    const cur = byDay.get(key);
+    if (!cur || pp[1] > cur.rating) byDay.set(key, { ts: pp[0], rating: pp[1], keyDay: key });
+  });
+  // Also need an independent "last of day" for the current point
+  const closeByDay = new Map();
+  rawPts.forEach(pp => {
+    const d = new Date(pp[0]);
+    const key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');
+    closeByDay.set(key, pp);
+  });
+  const pts = [...byDay.values()].sort((a,b) => a.ts - b.ts).map(r => [r.ts, r.rating]);
+  const peak = Math.max(...pts.map(pp => pp[1]));
+  const low = Math.min(...pts.map(pp => pp[1]));
+  const peakIdx = pts.findIndex(pp => pp[1] === peak);
+  const lowIdx = pts.findIndex(pp => pp[1] === low);
+  const lastRaw = rawPts[rawPts.length-1];
+  const current = lastRaw[1];
+  const data = pts.map(pp => ({ x: pp[0], y: pp[1] }));
+  const annots = [
+    { x: pts[peakIdx][0], y: peak, label: `Peak ${peak}`, color: p.accent5 },
+    { x: pts[lowIdx][0], y: low, label: `Low ${low}`, color: p.loss },
+    { x: lastRaw[0], y: current, label: `Now ${current}`, color: p.accent },
+  ];
+  const annotPlugin = {
+    id: 'annotPlugin',
+    afterDatasetsDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      annots.forEach(a => {
+        const x = scales.x.getPixelForValue(a.x);
+        const y = scales.y.getPixelForValue(a.y);
+        ctx.save();
+        ctx.fillStyle = a.color; ctx.strokeStyle = a.color; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = p.text;
+        ctx.font = "600 11px 'Inter', sans-serif";
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText('  ' + a.label, x, y - 10);
+        ctx.restore();
+      });
+    }
+  };
+  mkChart('c-rating', {
+    type: 'line',
+    data: { datasets: [{ label: 'Rapid rating', data, borderColor: p.accent, backgroundColor: p.accent + '22', pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.6, tension: 0.18, fill: true }]},
+    plugins: [annotPlugin],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      parsing: false,
+      scales: {
+        x: { type: 'time', time: { unit: 'month', displayFormats: { month: "MMM yy" } }, grid: { color: p.border, display: false }, ticks: { color: p.muted, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }, title: { display: true, text: 'Date', color: p.muted, font: { size: 11, weight: '600' } } },
+        y: { grid: { color: p.border }, ticks: { color: p.muted }, title: { display: true, text: 'Rapid rating (Glicko)', color: p.muted, font: { size: 11, weight: '600' } } }
+      },
+      plugins: { legend: { display: false }, dataLabel: { enabled: false }, tooltip: { callbacks: { title: (c) => new Date(c[0].parsed.x).toISOString().slice(0,10), label: (c) => 'Rating: ' + c.parsed.y } } }
+    }
+  });
+}
+
+// ==== ROLLING 50 ====
+function renderRolling(p){
+  // Downsample to one point per calendar day (last value of the day).
+  const byDay = new Map();
+  SUMMARY.rolling50.forEach(r => {
+    const dt = new Date(r.ts);
+    const key = dt.getUTCFullYear() + '-' + String(dt.getUTCMonth()+1).padStart(2,'0') + '-' + String(dt.getUTCDate()).padStart(2,'0');
+    byDay.set(key, r);
+  });
+  const d = [...byDay.values()].sort((a,b) => a.ts - b.ts).map(r => ({ x: r.ts, y: r.winPct }));
+  mkChart('c-rolling', {
+    type: 'line',
+    data: { datasets: [{ label: '50-game win %', data: d, borderColor: p.accent3, backgroundColor: p.accent3 + '22', pointRadius: 0, borderWidth: 1.5, fill: true, tension: 0.2 }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      parsing: false,
+      scales: {
+        x: { type: 'time', time: { unit: 'month' }, grid: { color: p.border, display: false }, ticks: { color: p.muted, maxTicksLimit: 8, maxRotation: 0 }, title: { display: true, text: 'Date', color: p.muted, font: { size: 11, weight: '600' } } },
+        y: { min: 20, max: 80, grid: { color: p.border }, ticks: { color: p.muted, callback: v => v + '%' }, title: { display: true, text: 'Win rate (last 50 games)', color: p.muted, font: { size: 11, weight: '600' } } }
+      },
+      plugins: { legend: { display: false }, dataLabel: { enabled: false },
+        tooltip: { callbacks: { title: (c) => new Date(c[0].parsed.x).toISOString().slice(0,10), label: (c) => 'Win %: ' + c.parsed.y.toFixed(1) } }
+      }
+    }
+  });
+}
+
+// ==== FAVOUR ====
+function renderFavour(p){
+  const bk = SUMMARY.favourBuckets;
+  const labels = bk.map(b => b.label);
+  const winPct = bk.map(b => b.n ? b.w/b.n*100 : 0);
+  const ns = bk.map(b => b.n);
+  const colors = [p.loss, p.loss, p.draw, p.accent, p.win];
+  mkChart('c-favour', {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Win %', data: winPct, backgroundColor: colors, borderWidth: 0 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, extraLabel: (i) => ns[i] + ' games', max: 80, datalabelOutside: true, xTitle: 'Win rate', yTitle: 'Rating gap vs opponent' })
+  });
+}
+
+// ==== ENDINGS ====
+function renderEndings(p){
+  const statusLabels = { mate: 'Checkmate', resign: 'Resignation', outoftime: 'Lost on time', timeout: 'Timeout', draw: 'Agreed draw', stalemate: 'Stalemate', cheat: 'Cheat', noStart: 'No start', unknownFinish: 'Unknown', variantEnd: 'Variant end' };
+  // Consistent colour per status code, shared across wins/losses/draws donuts
+  const statusColors = {
+    mate: p.accent,          // signature navy/teal
+    resign: p.accent3,       // secondary
+    outoftime: p.accent5,    // gold/amber
+    timeout: p.accent4,
+    draw: p.draw,
+    stalemate: p.accent2,
+    cheat: p.loss,
+    noStart: p.muted,
+    unknownFinish: p.muted,
+    variantEnd: p.accent4
+  };
+  const fallback = [p.accent, p.accent3, p.accent5, p.accent4, p.accent2, p.draw, p.loss, p.muted];
+  // Canonical sort order so slices appear in the same sequence across donuts
+  const statusOrder = ['mate','resign','outoftime','timeout','draw','stalemate','cheat','noStart','unknownFinish','variantEnd'];
+  const wEnd = SUMMARY.endings.wins, lEnd = SUMMARY.endings.losses, dEnd = SUMMARY.endings.draws;
+  const makeDonut = (canvasId, dataObj) => {
+    let entries = Object.entries(dataObj);
+    // Sort by canonical order, then alphabetic for anything unknown
+    entries.sort((a,b) => {
+      const ai = statusOrder.indexOf(a[0]); const bi = statusOrder.indexOf(b[0]);
+      if (ai === -1 && bi === -1) return a[0].localeCompare(b[0]);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    const labels = entries.map(([k]) => statusLabels[k] || k);
+    const data = entries.map(([,v]) => v);
+    const colors = entries.map(([k], i) => statusColors[k] || fallback[i % fallback.length]);
+    mkChart(canvasId, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: cssvar('surface'), borderWidth: 2 }]},
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '55%',
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 11 }, color: p.muted } },
+          tooltip: { callbacks: { label: c => `${c.label}: ${c.parsed} (${(c.parsed/c.dataset.data.reduce((a,b)=>a+b,0)*100).toFixed(1)}%)` } }
+        }
+      }
+    });
+  };
+  makeDonut('c-wend', wEnd);
+  makeDonut('c-lend', lEnd);
+  makeDonut('c-dend', dEnd);
+}
+
+// ==== MATING PIECE ====
+function renderMating(p){
+  const pieces = ['Queen', 'Rook', 'Bishop', 'Knight', 'Pawn', 'King'];
+  const given = pieces.map(pc => SUMMARY.matingPiece.given[pc] || 0);
+  const received = pieces.map(pc => SUMMARY.matingPiece.received[pc] || 0);
+  const pieceColors = [p.accent3, p.accent, p.accent5, p.accent4, p.accent2, p.draw];
+  const filter = (labels, data) => {
+    const out = { labels: [], data: [], colors: [] };
+    labels.forEach((l, i) => { if (data[i] > 0) { out.labels.push(l); out.data.push(data[i]); out.colors.push(pieceColors[i]); } });
+    return out;
+  };
+  const g = filter(pieces, given);
+  const r = filter(pieces, received);
+  mkChart('c-mate-g', {
+    type: 'bar',
+    data: { labels: g.labels, datasets: [{ data: g.data, backgroundColor: g.colors, borderWidth: 0, maxBarThickness: 40 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, datalabelOutside: true, xPct: false, xTitle: 'Checkmates delivered', yTitle: 'Mating piece' })
+  });
+  mkChart('c-mate-r', {
+    type: 'bar',
+    data: { labels: r.labels, datasets: [{ data: r.data, backgroundColor: r.colors, borderWidth: 0, maxBarThickness: 40 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, datalabelOutside: true, xPct: false, xTitle: 'Checkmates received', yTitle: 'Mating piece' })
+  });
+}
+
+// ==== OPENINGS TABLE ====
+function renderOpenings(p){
+  const MIN = 15;
+  const ops = SUMMARY.openings.filter(o => o.n >= MIN).slice(0, 20);
+  const maxN = Math.max(...ops.map(o => o.n));
+  document.getElementById('op-table').innerHTML = ops.map(o => {
+    const widthPct = (o.n / maxN * 100);
+    const wp = o.n ? (o.w/o.n*100).toFixed(0) : 0;
+    const wPct = o.n ? o.w/o.n*100 : 0;
+    const lPct = o.n ? o.l/o.n*100 : 0;
+    const dPct = o.n ? o.d/o.n*100 : 0;
+    return `<div class="op-row">
+      <div class="op-name"><span class="eco">${o.eco||'?'}</span>${o.name}</div>
+      <div class="op-bar" title="${o.w}W / ${o.l}L / ${o.d}D" style="width:${widthPct}%">
+        <div class="seg-w" style="width:${wPct}%"></div>
+        <div class="seg-l" style="width:${lPct}%"></div>
+        <div class="seg-d" style="width:${dPct}%"></div>
+      </div>
+      <div class="op-wrate">${wp}%<span class="n">n=${o.n}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ==== FAMILIES ====
+function renderFamilies(p){
+  const fs = SUMMARY.families;
+  mkChart('c-family', {
+    type: 'bar',
+    data: {
+      labels: fs.map(f => f.eco + ' · ' + f.name),
+      datasets: [
+        { label: 'Wins', data: fs.map(f=>f.w), backgroundColor: p.win, borderWidth: 0, stack: 's' },
+        { label: 'Draws', data: fs.map(f=>f.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: fs.map(f=>f.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ indexAxis: 'y', legend: true, stacked: true, xTitle: 'Games', yTitle: 'ECO family' })
+  });
+
+  const fsF = fs.filter(f => f.n >= 20);
+  mkChart('c-familywin', {
+    type: 'bar',
+    data: {
+      labels: fsF.map(f => f.eco),
+      datasets: [{ label: 'Win %', data: fsF.map(f => f.n ? f.w/f.n*100 : 0), backgroundColor: p.accent, borderWidth: 0, maxBarThickness: 46 }]
+    },
+    options: baseOpt({ legend: false, yPct: true, max: 70, extraLabel: (i) => fsF[i].n + ' games', xTitle: 'ECO family', yTitle: 'Win rate' })
+  });
+}
+
+// ==== MOVE HISTOGRAM ====
+function renderMoves(p){
+  const h = SUMMARY.moveHistogram;
+  const buckets = Object.keys(h.win).map(k => +k).sort((a,b)=>a-b);
+  const labels = buckets.map(b => b + '-' + (b+4));
+  mkChart('c-movehist', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Wins', data: buckets.map(b => h.win[b]||0), backgroundColor: p.win, borderWidth: 0 },
+        { label: 'Losses', data: buckets.map(b => h.loss[b]||0), backgroundColor: p.loss, borderWidth: 0 },
+        { label: 'Draws', data: buckets.map(b => h.draw[b]||0), backgroundColor: p.draw, borderWidth: 0 },
+      ]
+    },
+    options: baseOpt({ legend: true, xTitle: 'Full-move buckets', yTitle: 'Games' })
+  });
+
+  const s = SUMMARY.moveStats;
+  mkChart('c-moveavg', {
+    type: 'bar',
+    data: {
+      labels: ['Wins (n=' + s.win.n + ')', 'Losses (n=' + s.loss.n + ')', 'Draws (n=' + s.draw.n + ')'],
+      datasets: [
+        { label: 'Median', data: [s.win.median, s.loss.median, s.draw.median], backgroundColor: p.accent, borderWidth: 0 },
+        { label: 'Average', data: [s.win.avg, s.loss.avg, s.draw.avg], backgroundColor: p.accent3, borderWidth: 0 },
+      ]
+    },
+    options: baseOpt({ legend: true, indexAxis: 'y', datalabelOutside: true, xTitle: 'Full moves', yTitle: 'Result' })
+  });
+}
+
+// ==== PHASES & MATERIAL ====
+function renderPhases(p){
+  const pr = SUMMARY.phaseRecord || [];
+  if (!pr.length) return;
+  const labels = pr.map(x => x.phase);
+  mkChart('c-phase', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Wins',   data: pr.map(x => x.w), backgroundColor: p.win,  borderWidth: 0, stack: 's' },
+        { label: 'Draws',  data: pr.map(x => x.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: pr.map(x => x.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ indexAxis: 'y', legend: true, stacked: true, xTitle: 'Games', yTitle: 'Ending phase' })
+  });
+  // Decisive win rate per phase
+  const wpData = pr.map(x => (x.w + x.l) ? +(x.w/(x.w+x.l)*100).toFixed(1) : 0);
+  const colors = pr.map((_, i) => [p.accent, p.accent3, p.accent5][i] || p.accent);
+  mkChart('c-phasewin', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Decisive win %', data: wpData, backgroundColor: colors, borderWidth: 0, maxBarThickness: 44 }]
+    },
+    options: baseOpt({ legend: false, yPct: true, max: 70, datalabelOutside: true, xTitle: 'Ending phase', yTitle: 'Decisive win %', extraLabel: (i) => pr[i].n + ' games' })
+  });
+}
+
+function renderMaterial(p){
+  const mb = SUMMARY.materialBuckets || [];
+  if (!mb.length) return;
+  const labels = mb.map(b => b.label);
+  mkChart('c-mat', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Wins',   data: mb.map(b => b.w), backgroundColor: p.win,  borderWidth: 0, stack: 's' },
+        { label: 'Draws',  data: mb.map(b => b.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: mb.map(b => b.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ indexAxis: 'y', legend: true, stacked: true, xTitle: 'Games', yTitle: 'My − opp material at end' })
+  });
+}
+
+function renderMaterialTraj(p){
+  const t = SUMMARY.materialTrajectory || {};
+  if (!t.win) return;
+  const labels = ['Move 10 (ply 20)', 'Move 20 (ply 40)', 'Move 30 (ply 60)'];
+  const pick = (r) => [t[r]['20'] ?? null, t[r]['40'] ?? null, t[r]['60'] ?? null];
+  mkChart('c-mattraj', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Eventual wins',   data: pick('win'),  borderColor: p.win,  backgroundColor: p.win  + '22', borderWidth: 2, tension: 0.2, pointRadius: 4 },
+        { label: 'Eventual draws',  data: pick('draw'), borderColor: p.draw, backgroundColor: p.draw + '22', borderWidth: 2, tension: 0.2, pointRadius: 4 },
+        { label: 'Eventual losses', data: pick('loss'), borderColor: p.loss, backgroundColor: p.loss + '22', borderWidth: 2, tension: 0.2, pointRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: p.border, display: false }, ticks: { color: p.muted }, title: { display: true, text: 'Point in game', color: p.muted, font: { size: 11, weight: '600' } } },
+        y: { grid: { color: p.border }, ticks: { color: p.muted }, title: { display: true, text: 'Avg (my − opp) material', color: p.muted, font: { size: 11, weight: '600' } } }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: p.muted } },
+        dataLabel: { enabled: false },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y == null ? '—' : (c.parsed.y > 0 ? '+' : '') + c.parsed.y) } }
+      }
+    }
+  });
+}
+
+function renderMaterialCallout(p){
+  const m = SUMMARY.materialByResult; if (!m) return;
+  const mb = SUMMARY.materialBuckets || [];
+  const up9 = mb.find(b => b.label === 'Up 9+');
+  const down9 = mb.find(b => b.label === 'Down 9+');
+  const even = mb.find(b => b.label === 'Even (±1)');
+  const el = document.getElementById('mat-callout'); if (!el) return;
+  el.innerHTML = `When I win I end with a mean <b>+${m.win.mean}</b> pawn-equivalent material edge; when I lose, <b>${m.loss.mean}</b>. ${up9 ? `Of games where I finished <b>up 9+</b> points of material (${up9.n} games), I won <b>${(up9.w/up9.n*100).toFixed(0)}%</b>. ` : ''}${down9 ? `Of games I finished <b>down 9+</b> (${down9.n} games), I only salvaged <b>${(down9.w/down9.n*100).toFixed(0)}%</b>. ` : ''}${even ? `In materially <b>even</b> endings (${even.n} games) my decisive rate is <b>${(even.w/(even.w+even.l)*100).toFixed(0)}%</b> — this is the honest skill bracket where the points are won or lost on the final moves.` : ''}`;
+}
+
+// ==== BY MONTH ====
+function renderMonth(p){
+  const m = SUMMARY.byMonth;
+  mkChart('c-month', {
+    type: 'bar',
+    data: {
+      labels: m.map(x => x.month),
+      datasets: [
+        { label: 'Wins', data: m.map(x=>x.w), backgroundColor: p.win, borderWidth: 0, stack: 's' },
+        { label: 'Draws', data: m.map(x=>x.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: m.map(x=>x.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ legend: true, stacked: true, xTitle: 'Month', yTitle: 'Games' })
+  });
+}
+
+// ==== STREAKS ====
+function renderStreaks(p){
+  const s = SUMMARY.streaks;
+  const k = SUMMARY.kpi;
+  const blocks = [
+    { l: 'Longest win streak', v: s.longestWin, sub: 'consecutive wins' },
+    { l: 'Longest losing streak', v: s.longestLoss, sub: 'consecutive losses' },
+    { l: 'Rapid peak', v: k.rapidPeak, sub: 'highest rating ever' },
+    { l: 'Rapid low', v: k.rapidLow, sub: 'lowest rating ever' },
+  ];
+  document.getElementById('streak-grid').innerHTML = blocks.map(b =>
+    `<div class="streak"><div class="l">${b.l}</div><div class="v">${b.v}</div><div class="s">${b.sub}</div></div>`
+  ).join('');
+}
+
+// ==== FIRST MOVES ====
+function renderFirstMoves(p){
+  const pick = (arr) => arr.filter(x => x.n >= 10).slice(0, 8);
+  const fmw = pick(SUMMARY.firstMoves.asWhite);
+  const fmb = pick(SUMMARY.firstMoves.asBlack);
+  const doChart = (id, data, color) => {
+    mkChart(id, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.move + ' (n=' + d.n + ')'),
+        datasets: [{ label: 'Win %', data: data.map(d => d.w/d.n*100), backgroundColor: color, borderWidth: 0, maxBarThickness: 30 }]
+      },
+      options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, datalabelOutside: true, max: 80, xTitle: 'Win rate', yTitle: 'First move' })
+    });
+  };
+  doChart('c-fmw', fmw, p.accent);
+  doChart('c-fmb', fmb, p.accent3);
+}
+
+// ==== BASE CHART OPTIONS ====
+// Only apply % callbacks to the VALUE axis. Category axes keep the label (string) Chart.js supplies via getLabelForValue.
+function baseOpt(opts){
+  const p = palette();
+  const { indexAxis='x', legend=true, stacked=false, xPct=false, yPct=false, datalabelOutside=false, extraLabel, max=null, axisLabel=null, xTitle=null, yTitle=null } = opts || {};
+  // Value axis is opposite to indexAxis
+  const valueAxis = indexAxis === 'y' ? 'x' : 'y';
+  const mkTicks = (axis) => {
+    const isValue = axis === valueAxis;
+    const isPct = (axis === 'x' && xPct) || (axis === 'y' && yPct);
+    const t = { color: p.muted, autoSkip: true, maxRotation: 0 };
+    if (isValue && isPct) t.callback = (v) => v + '%';
+    // Category axes: do NOT set callback — Chart.js will render the label string automatically.
+    return t;
+  };
+  const mkTitle = (axis) => {
+    const explicit = axis === 'x' ? xTitle : yTitle;
+    const text = explicit || (axisLabel && axis === indexAxis ? axisLabel : null);
+    if (!text) return undefined;
+    return { display: true, text, color: p.muted, font: { size: 11, weight: '600' } };
+  };
+  const o = {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis,
+    scales: {
+      x: { stacked, grid: { color: p.border, display: indexAxis === 'y' }, ticks: mkTicks('x'), max: (xPct && max) ? max : undefined, title: mkTitle('x') },
+      y: { stacked, grid: { color: p.border, display: indexAxis === 'x' }, ticks: mkTicks('y'), max: (yPct && max) ? max : undefined, title: mkTitle('y') }
+    },
+    plugins: {
+      legend: legend ? { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: p.muted } } : { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            let v = ctx.parsed[valueAxis];
+            let out = ctx.dataset.label ? ctx.dataset.label + ': ' : '';
+            out += (xPct || yPct) ? (typeof v === 'number' ? v.toFixed(1) + '%' : v) : fmt(v);
+            if (extraLabel) { const ex = extraLabel(ctx.dataIndex); if (ex) out += ' · ' + ex; }
+            return out;
+          }
+        }
+      }
+    }
+  };
+  if (datalabelOutside) {
+    o.plugins.dataLabel = { enabled: true };
+    o.layout = { padding: { right: indexAxis === 'y' ? 40 : 0, top: indexAxis === 'x' ? 16 : 0 } };
+  }
+  return o;
+}
+
+// Data label plugin — only fires when chart opts in via plugins.dataLabel.enabled === true.
+// Never fires on line/scatter charts (only bar), and skips non-numeric / object data values.
+const dataLabelPlugin = {
+  id: 'dataLabel',
+  afterDatasetsDraw(chart) {
+    try {
+      const opts = chart.options || {};
+      if (!opts.plugins || !opts.plugins.dataLabel || !opts.plugins.dataLabel.enabled) return;
+      if (!opts.scales || !opts.scales.x) return;
+      // Only bar charts (not line/scatter/bubble/etc.)
+      const firstDsType = (chart.config && chart.config.data && chart.config.data.datasets[0] && chart.config.data.datasets[0].type) || (chart.config && chart.config.type);
+      if (firstDsType && firstDsType !== 'bar') return;
+      const p = palette();
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = "600 10.5px 'Inter', sans-serif";
+      ctx.fillStyle = p.text;
+      const isHoriz = opts.indexAxis === 'y';
+      const valueAxis = isHoriz ? 'x' : 'y';
+      const isPct = valueAxis === 'x' ? (opts.scales.x.max && opts.scales.x.max <= 100) : (opts.scales.y && opts.scales.y.max && opts.scales.y.max <= 100);
+      chart.data.datasets.forEach((ds, di) => {
+        if (ds.type && ds.type !== 'bar') return;
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach((bar, i) => {
+          const val = ds.data[i];
+          if (val == null) return;
+          if (typeof val !== 'number') return; // skip {x,y} objects, strings, etc.
+          if (val === 0) return;
+          const text = isPct ? val.toFixed(1) + '%' : (Number.isInteger(val) ? String(val) : val.toFixed(1));
+          if (isHoriz) { ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('  ' + text, bar.x, bar.y); }
+          else { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(text, bar.x, bar.y - 4); }
+        });
+      });
+      ctx.restore();
+    } catch (e) {
+      console.error('dataLabel plugin error', e);
+    }
+  }
+};
+Chart.register(dataLabelPlugin);
+
+// ==== BOOTSTRAP ====
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderAll);
+  else renderAll();
+}
+</script>
+</body>
+</html>
