@@ -49,6 +49,12 @@ a:hover{text-decoration:underline}
 .mast-sub{font-family:var(--serif);font-style:italic;font-weight:400;font-size:19px;color:var(--text-muted);margin-bottom:14px;max-width:780px}
 .mast-byline{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--text-subtle);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;flex-wrap:wrap}
 .mast-byline .sep{color:var(--border-strong)}
+.mast-filter{display:inline-flex;gap:4px;margin:14px 0 6px;padding:4px;background:var(--surface2);border:1px solid var(--border);border-radius:999px}
+.mast-filter button{appearance:none;border:0;background:transparent;color:var(--text-muted);padding:7px 16px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;font-size:11px;font-weight:600;cursor:pointer;border-radius:999px;transition:background .15s,color .15s}
+.mast-filter button:hover{color:var(--text)}
+.mast-filter button.active{background:var(--accent);color:#fff}
+.mast-filter .count{opacity:0.6;margin-left:6px;font-size:10px;letter-spacing:0.05em}
+.mast-filter button.active .count{opacity:0.85}
 
 .theme-toggle{position:absolute;top:22px;right:0;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:999px;cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;display:flex;gap:8px;align-items:center;transition:all .2s}
 .theme-toggle:hover{border-color:var(--text);background:var(--surface2)}
@@ -132,16 +138,15 @@ a:hover{text-decoration:underline}
 <div class="masthead">
   <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><span id="t-icon">◐</span><span id="t-label">Dark</span></button>
   <div class="mast-kicker">Chess Analytics · Lichess</div>
-  <h1 class="mast-title">My first <em>1,528</em> chess games</h1>
-  <p class="mast-sub">A data-led look at how <b>Damjanv</b> has been playing on Lichess since August 2023 — the ratings arc, the opening repertoire, and the checkmate that keeps getting me.</p>
+  <h1 class="mast-title">Chess performance dashboard</h1>
+  <p class="mast-sub">A data-led look at how Damjanv has been playing on Lichess since August 2023 &mdash; the ratings arc, the opening repertoire, and how my games evolve.</p>
+  <div class="mast-filter" id="filter-row" role="tablist" aria-label="Time control filter"></div>
   <div class="mast-byline">
     <span>Damjan Vlastelica</span>
     <span class="sep">·</span>
     <span id="pulled">Pulled —</span>
     <span class="sep">·</span>
     <span><a href="https://lichess.org/@/Damjanv" target="_blank">lichess.org/@/Damjanv</a></span>
-    <span class="sep">·</span>
-    <span><a href="Damjan-Vlastelica-Dashboard-CV.html">← Back to CV</a></span>
   </div>
 </div>
 
@@ -282,14 +287,44 @@ a:hover{text-decoration:underline}
 <!-- FOOTER / METHOD -->
 <div class="foot">
   <div><b>Methodology.</b> Data pulled from the Lichess public API (<code>/api/games/user/damjanv</code>) then aggregated locally. Ratings shown are post-game (pre-game + rating change). "Decisive win %" = wins ÷ (wins + losses), excluding draws. Material at end-of-game computed by simulating SAN moves with chess.js; values are standard (P=1, N=B=3, R=5, Q=9). ECO family derives from the opening's ECO-code letter.</div>
-  <div style="margin-top:10px">Damjan Vlastelica · <a href="https://github.com/Damjanv1/cv-dashboard">github.com/Damjanv1/cv-dashboard</a></div>
+  <div style="margin-top:10px">Damjan Vlastelica · <a href="https://damjanv1.github.io/cv-dashboard/Damjan-Vlastelica-Dashboard-CV.html">CV dashboard</a> · <a href="https://damjanv1.github.io/projects/">all projects</a></div>
 </div>
 
 </div><!-- /wrap -->
 
 <script>
 // ==== DATA (injected) ====
-const SUMMARY = __DATA_PLACEHOLDER__;
+const DATA = __DATA_PLACEHOLDER__;
+let SUMMARY = DATA.all;
+let CURRENT_FILTER = 'all';
+
+function applyFilter(which){
+  if (!DATA[which]) return;
+  CURRENT_FILTER = which;
+  SUMMARY = DATA[which];
+  // update button states
+  document.querySelectorAll('#filter-row button').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === which);
+    b.setAttribute('aria-selected', b.dataset.filter === which ? 'true' : 'false');
+  });
+  renderAll();
+}
+
+function renderFilterButtons(){
+  const row = document.getElementById('filter-row');
+  if (!row) return;
+  const opts = [
+    { key: 'all',   label: 'All' },
+    { key: 'rapid', label: 'Rapid' },
+    { key: 'blitz', label: 'Blitz' },
+  ];
+  row.innerHTML = opts.map(o => {
+    const n = (DATA[o.key] && DATA[o.key].kpi && DATA[o.key].kpi.total) || 0;
+    const active = o.key === CURRENT_FILTER ? ' active' : '';
+    const sel = o.key === CURRENT_FILTER ? 'true' : 'false';
+    return `<button role="tab" aria-selected="${sel}" data-filter="${o.key}" class="${active.trim()}" onclick="applyFilter('${o.key}')">${o.label} <span style="opacity:.6">(${n.toLocaleString()})</span></button>`;
+  }).join('');
+}
 
 // ==== THEME ====
 function toggleTheme(){
@@ -946,9 +981,13 @@ const dataLabelPlugin = {
 Chart.register(dataLabelPlugin);
 
 // ==== BOOTSTRAP ====
+function bootstrap(){
+  renderFilterButtons();
+  renderAll();
+}
 if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', renderAll);
-  else renderAll();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrap);
+  else bootstrap();
 }
 </script>
 </body>
