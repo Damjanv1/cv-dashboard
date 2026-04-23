@@ -9,3 +9,14 @@ chess/summary.json
 chess/summary.min.json
 chess/node_modules/
 chess/package-lock.json
+
+# Fuel build: ignore raw data + creds + node_modules, keep scripts/template committed
+fuel/prices.raw.json
+fuel/summary.json
+fuel/summary.min.json
+fuel/node_modules/
+fuel/package-lock.json
+fuel/.env.local
+fuel/.env
+fuel/lga-nsw-raw.geojson
+*.env.local

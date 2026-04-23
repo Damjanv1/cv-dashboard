@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NSW Fuel Insights · Damjan Vlastelica</title>
+<meta name="description" content="NSW Fuel Insights - a data-led view of fuel prices across New South Wales, sourced from the NSW FuelCheck API." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="https://unpkg.com" crossorigin />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<style>
+:root{
+  --nsw-blue:      #002664;
+  --nsw-blue-2:    #0058AF;
+  --nsw-blue-3:    #4FA5D5;  /* lighter, for highlights & accents */
+  --nsw-blue-4:    #B6DCF2;  /* very light, for subtle backgrounds */
+  --nsw-sky:       #22A7F2;
+  --nsw-red:       #D7153A;
+  --nsw-yellow:    #FDB415;
+  --nsw-green:     #00833E;
+  --bg:            #F4F7F9;
+  --surface:       #FFFFFF;
+  --surface2:      #EEF2F6;
+  --border:        #D7DEE5;
+  --text:          #22272B;
+  --text-muted:    #5C6B78;
+  --text-subtle:   #8793A0;
+  --accent:        var(--nsw-blue);
+  --accent2:       var(--nsw-blue-2);
+  --accent3:       var(--nsw-sky);
+  --accent4:       var(--nsw-red);
+  --accent5:       var(--nsw-yellow);
+  --accent6:       var(--nsw-green);
+  --cheap:         var(--nsw-sky);   /* bar colour for "cheaper" charts — replaces green signalling */
+  --mono:          'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+[data-theme="dark"]{
+  --bg:          #0B1220;
+  --surface:     #121A2B;
+  --surface2:    #19253B;
+  --border:      #2A3750;
+  --text:        #E7ECF3;
+  --text-muted:  #9AA7B8;
+  --text-subtle: #6E7B8F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 60px}
+
+/* Masthead - with a lighter blue fade at the bottom for breathing room */
+.masthead{background:linear-gradient(135deg,var(--nsw-blue) 0%,var(--nsw-blue-2) 60%,var(--nsw-blue-3) 100%);color:#fff;border-radius:14px;padding:36px 32px 30px;position:relative;overflow:hidden;margin-bottom:20px}
+.masthead::after{content:'';position:absolute;right:-40px;top:-40px;width:260px;height:260px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='none' stroke='white' stroke-opacity='0.10' stroke-width='1.5'><circle cx='100' cy='100' r='30'/><circle cx='100' cy='100' r='50'/><circle cx='100' cy='100' r='70'/><path d='M100 30 L100 30 M100 170 L100 170 M30 100 L170 100 M50 50 L150 150 M150 50 L50 150'/></g></svg>");background-size:contain;background-repeat:no-repeat;pointer-events:none}
+.mast-kicker{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.15em;font-size:11px;opacity:0.85;margin-bottom:10px}
+.mast-title{font-size:32px;font-weight:800;margin:0 0 8px;letter-spacing:-0.02em;line-height:1.15}
+.mast-sub{font-size:15px;opacity:0.92;max-width:720px;margin:0}
+.mast-filter{display:inline-flex;gap:4px;margin:18px 0 6px;padding:4px;background:rgba(255,255,255,0.12);border-radius:999px;flex-wrap:wrap}
+.mast-filter button{appearance:none;border:0;background:transparent;color:rgba(255,255,255,0.75);padding:7px 14px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;font-size:11px;font-weight:600;cursor:pointer;border-radius:999px;transition:background .15s,color .15s}
+.mast-filter button:hover{color:#fff}
+.mast-filter button.active{background:#fff;color:var(--nsw-blue)}
+.mast-byline{margin-top:14px;font-family:var(--mono);font-size:12px;opacity:0.85;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mast-byline .sep{opacity:0.5}
+.theme-toggle{position:absolute;top:18px;right:18px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase}
+
+/* Location panel */
+.loc-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.loc-field{display:flex;flex-direction:column;gap:4px}
+.loc-field label{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;font-size:10px;color:var(--text-muted);font-weight:700}
+.loc-field input,.loc-field select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:14px;font-family:var(--sans);min-width:100px}
+.loc-field input:focus,.loc-field select:focus{outline:none;border-color:var(--accent2)}
+.loc-field .radius-val{font-family:var(--mono);font-size:12px;color:var(--text);min-width:36px;display:inline-block}
+.loc-btn{appearance:none;border:0;background:linear-gradient(135deg,var(--nsw-blue-2) 0%,var(--nsw-blue-3) 100%);color:#fff;padding:10px 16px;border-radius:6px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;cursor:pointer}
+.loc-btn.secondary{background:var(--surface2);color:var(--text-muted);border:1px solid var(--border)}
+.loc-btn:hover{opacity:0.9}
+.loc-status{font-size:13px;color:var(--text-muted);flex-basis:100%}
+.loc-status.active{color:var(--accent6);font-weight:600}
+.loc-status.error{color:var(--accent4)}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--nsw-blue-3);border-radius:10px;padding:16px 18px}
+.kpi-label{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.12em;font-size:10px;color:var(--text-muted);margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:800;letter-spacing:-0.02em}
+.kpi-sub{font-size:12px;color:var(--text-subtle);margin-top:4px}
+
+/* Section heading */
+.sec-mast{background:linear-gradient(90deg,var(--nsw-blue-4) 0%,var(--surface) 60%);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:26px 0 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+[data-theme="dark"] .sec-mast{background:var(--surface)}
+.sec-num{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;color:var(--nsw-blue-2);font-weight:700}
+.sec-title{font-size:17px;font-weight:700;margin:0}
+.sec-sub{color:var(--text-muted);font-size:13px;margin-left:auto}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:800px){ .grid-2{grid-template-columns:1fr} }
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.card h3{margin:0 0 4px;font-size:14px;font-weight:700;color:var(--text)}
+.card p.sub{margin:0 0 12px;color:var(--text-muted);font-size:12px}
+.card .ctx{position:relative;height:260px}
+.card.wide{grid-column:1 / -1}
+.card.tall .ctx{height:340px}
+.card.suburb-list .ctx{height:620px}
+
+/* Map */
+#map{height:420px;width:100%;border-radius:8px;overflow:hidden}
+.legend{background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--border);font-size:12px;line-height:1.7;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.legend .sw{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;font-size:10px;color:var(--text-muted);font-weight:700}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+
+/* Drive calculator */
+.drive-form{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.drive-form .loc-field input{background:var(--surface)}
+.drive-summary{background:var(--surface2);border-left:4px solid var(--accent6);padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px}
+.drive-summary strong{color:var(--accent6);font-size:15px}
+.drive-row{display:grid;grid-template-columns:auto 1fr 120px 90px 90px 110px;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);align-items:center;font-size:13px}
+.drive-row.head{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:700;border-bottom:2px solid var(--border)}
+.drive-row .net.good{color:var(--accent6);font-weight:700}
+.drive-row .net.bad{color:var(--accent4);font-weight:700}
+@media (max-width:760px){
+  .drive-row{grid-template-columns:1fr 1fr;gap:4px}
+  .drive-row.head{display:none}
+  .drive-row > *{padding:2px 0}
+}
+
+/* Footer */
+.footer{margin-top:36px;padding:18px 0;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);line-height:1.6}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);color:var(--text-muted);margin-right:6px}
+.badge.live{border-color:var(--nsw-sky);color:var(--nsw-blue-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <button class="theme-toggle" onclick="toggleTheme()"><span id="t-icon">◐</span> <span id="t-label">Dark</span></button>
+  <div class="mast-kicker">NSW Government · FuelCheck</div>
+  <h1 class="mast-title">NSW Fuel Insights</h1>
+  <p class="mast-sub">A data-led view of petrol and diesel pricing across New South Wales &mdash; what you pay, where it's cheapest, and whether driving further for cheaper fuel is actually worth it. Refreshed hourly from the FuelCheck API.</p>
+  <div class="mast-filter" id="filter-row" role="tablist" aria-label="Fuel type filter"></div>
+  <div class="mast-byline">
+    <span>Damjan Vlastelica</span>
+    <span class="sep">·</span>
+    <span id="pulled">Pulled —</span>
+    <span class="sep">·</span>
+    <span><a href="https://www.fuelcheck.nsw.gov.au/" target="_blank" style="color:#fff;text-decoration:underline">fuelcheck.nsw.gov.au</a></span>
+  </div>
+</div>
+
+<!-- LOCATION FILTER -->
+<div class="loc-panel">
+  <div class="loc-field">
+    <label for="loc-pc">NSW postcode</label>
+    <input type="text" id="loc-pc" placeholder="e.g. 2000" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" />
+  </div>
+  <div class="loc-field" style="flex:1;min-width:260px">
+    <label for="loc-addr">…or full address <span style="color:var(--accent6);font-weight:600">(more accurate)</span></label>
+    <input type="text" id="loc-addr" placeholder="e.g. 100 George St Sydney NSW" style="width:100%" />
+  </div>
+  <div class="loc-field">
+    <label for="loc-radius">Radius · <span id="loc-radius-val" class="radius-val">20 km</span></label>
+    <input type="range" id="loc-radius" min="5" max="200" step="5" value="20" />
+  </div>
+  <button class="loc-btn" onclick="applyLocation()">Apply</button>
+  <button class="loc-btn secondary" onclick="clearLocation()">Clear</button>
+  <div class="loc-status" id="loc-status">Showing data for all of NSW. Enter a postcode <em>or</em> full address — address gives street-level accuracy, postcode uses the suburb centroid.</div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-row" id="kpi-row"></div>
+
+<!-- §1 MARKET SHAPE -->
+<div class="sec-mast">
+  <span class="sec-num">§1</span>
+  <h2 class="sec-title">Market shape</h2>
+  <span class="sec-sub">How prices are distributed right now</span>
+</div>
+<div class="grid">
+  <div class="card"><h3>Price distribution</h3><p class="sub">Count of stations in each 5¢ price band.</p><div class="ctx"><canvas id="c-dist"></canvas></div></div>
+  <div class="card"><h3>Median by fuel type</h3><p class="sub">Typical price across the current view.</p><div class="ctx"><canvas id="c-byfuel"></canvas></div></div>
+</div>
+
+<!-- §2 GEOGRAPHY -->
+<div class="sec-mast">
+  <span class="sec-num">§2</span>
+  <h2 class="sec-title">Geography</h2>
+  <span class="sec-sub">Heatmap · zoom in for station markers · regional & suburb breakdowns</span>
+</div>
+<div class="grid">
+  <div class="card wide">
+    <h3>Price map <span style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;background:var(--nsw-blue-4);color:var(--nsw-blue);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:2px">Zoom for detail</span></h3>
+    <p class="sub">Three tiers as you zoom in: state-wide <strong>heatmap</strong>, then <strong>LGA choropleth</strong> (council-area medians) at regional zoom, then <strong>individual station markers</strong> at street zoom. Blue = cheaper third, amber = middle, red = most expensive. Click any LGA or marker for details.</p>
+    <div id="map"></div>
+  </div>
+  <div class="card wide tall"><h3>Median price by region</h3><p class="sub">Lower bar = cheaper on average. Bracketed numbers show station count.</p><div class="ctx"><canvas id="c-region"></canvas></div></div>
+  <div class="grid-2" style="grid-column:1/-1">
+    <div class="card suburb-list"><h3>Cheapest 25 suburbs</h3><p class="sub">Lowest median price in the current view. Shared scale with the chart on the right. Bracketed numbers show station count.</p><div class="ctx"><canvas id="c-suburb-cheap"></canvas></div></div>
+    <div class="card suburb-list"><h3>Most expensive 25 suburbs</h3><p class="sub">Highest median price in the current view. Shared scale with the chart on the left. Bracketed numbers show station count.</p><div class="ctx"><canvas id="c-suburb-exp"></canvas></div></div>
+  </div>
+</div>
+
+<!-- §3 BRANDS -->
+<div class="sec-mast">
+  <span class="sec-num">§3</span>
+  <h2 class="sec-title">Brand comparison</h2>
+  <span class="sec-sub">Every brand with ≥ 5 stations on the current fuel type · blue = cheapest third · amber = middle · red = most expensive</span>
+</div>
+<div class="grid">
+  <div class="card wide tall"><h3>Median price by brand</h3><p class="sub">All qualifying brands, sorted cheapest → most expensive. Colour = tercile across this chart (blue / amber / red). Bracketed numbers show station count.</p><div class="ctx"><canvas id="c-brand"></canvas></div></div>
+</div>
+
+<!-- §4 CHEAPEST & MOST EXPENSIVE -->
+<div class="sec-mast">
+  <span class="sec-num">§4</span>
+  <h2 class="sec-title">Cheapest & most expensive</h2>
+  <span class="sec-sub">Top 15 each for the selected fuel</span>
+</div>
+<div class="grid-2">
+  <div class="card"><h3 style="color:var(--accent6)">Cheapest 15</h3><p class="sub">Lowest current prices in the view.</p><div id="cheapest-table"></div></div>
+  <div class="card"><h3 style="color:var(--accent4)">Most expensive 15</h3><p class="sub">Highest current prices in the view.</p><div id="expensive-table"></div></div>
+</div>
+
+<!-- §5 WORTH THE DRIVE -->
+<div class="sec-mast">
+  <span class="sec-num">§5</span>
+  <h2 class="sec-title">Is it worth the drive?</h2>
+  <span class="sec-sub">Net savings after fuel burned on the detour</span>
+</div>
+<div class="card wide">
+  <div class="drive-form">
+    <div class="loc-field">
+      <label>Postcode (from above)</label>
+      <input type="text" id="drive-pc" readonly placeholder="Set postcode above" />
+    </div>
+    <div class="loc-field">
+      <label>Car fuel economy (L/100km)</label>
+      <input type="number" id="drive-econ" min="1" max="30" step="0.1" value="8" />
+    </div>
+    <div class="loc-field">
+      <label>Typical fill (litres)</label>
+      <input type="number" id="drive-fill" min="5" max="120" step="1" value="45" />
+    </div>
+    <div class="loc-field">
+      <label>Max drive distance (km)</label>
+      <input type="number" id="drive-maxkm" min="5" max="200" step="5" value="30" />
+    </div>
+    <div class="loc-field">
+      <label>Your time ($/hr, optional)</label>
+      <input type="number" id="drive-time" min="0" max="200" step="5" value="0" />
+    </div>
+    <button class="loc-btn" onclick="calcDrive()" style="align-self:flex-end">Calculate</button>
+  </div>
+  <div id="drive-result"><p style="color:var(--text-muted);font-size:13px;margin:0">Enter a postcode or address in the panel above, set your car details, then click Calculate.</p></div>
+  <details style="margin-top:14px;font-size:12px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+    <summary style="cursor:pointer;font-weight:700;color:var(--text);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;font-size:11px">How is the net saving calculated?</summary>
+    <div style="margin-top:10px;line-height:1.6">
+      For every station within your max drive radius we work out:
+      <ol style="margin:8px 0 8px 18px;padding:0">
+        <li><strong>Drive distance</strong> = straight-line × 1.3 (the road-factor fudge for real roads vs crow-flies).</li>
+        <li><strong>Round-trip fuel burnt</strong> = (2 × drive km) ÷ 100 × your car's L/100 km.</li>
+        <li><strong>Fuel cost of the detour</strong> = litres burnt × your local baseline price (conservative).</li>
+        <li><strong>Time cost</strong> = (round-trip ÷ 50 km/h) × your $/hr, if set.</li>
+        <li><strong>Savings</strong> = (baseline − station price) × your typical fill size.</li>
+        <li><strong>Net</strong> = Savings − Fuel cost − Time cost.</li>
+      </ol>
+      The <strong>baseline</strong> is the median price of stations within 3 km of your location (fallback 5 km). A station only counts as "worth the drive" if Net &gt; $0.50 per fill. Distances are not real turn-by-turn routes — Phase 2 of this project will wire in actual driving directions for higher accuracy.
+    </div>
+  </details>
+</div>
+
+<div class="footer">
+  <span class="badge live">Live · refreshed hourly</span>
+  <span class="badge">NSW only</span>
+  <div style="margin-top:10px">Data: <a href="https://api.nsw.gov.au/Product/Index/22" target="_blank">NSW FuelCheck API</a>. Prices are self-reported by retailers and may lag by 30&ndash;60 minutes. Map tiles © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors. Geocoding via <a href="https://nominatim.openstreetmap.org/" target="_blank">Nominatim</a>. This dashboard is independent of and not endorsed by the NSW Government.</div>
+  <div style="margin-top:8px">Damjan Vlastelica · <a href="https://damjanv1.github.io/cv-dashboard/Damjan-Vlastelica-Dashboard-CV.html">CV dashboard</a> · <a href="https://damjanv1.github.io/projects/">all projects</a></div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ==== DATA (injected) ====
+const SUMMARY = __DATA_PLACEHOLDER__;
+
+// ==== STATE ====
+let CURRENT_FUEL = null;
+let HOME = null;         // {lat, lng, postcode, label} when set
+let RADIUS_KM = 20;
+
+// ==== THEME ====
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('fd-theme', next); } catch(e){}
+  document.getElementById('t-label').textContent = next === 'dark' ? 'Light' : 'Dark';
+  renderAll();
+}
+(function(){
+  try { if (localStorage.getItem('fd-theme') === 'dark') document.documentElement.setAttribute('data-theme','dark'); } catch(e){}
+  document.getElementById('t-label').textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark';
+})();
+
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function cssvar(n){ return css('--' + n); }
+function palette(){
+  return { text: cssvar('text'), muted: cssvar('text-muted'), border: cssvar('border'),
+           accent: cssvar('accent'), accent2: cssvar('accent2'), accent3: cssvar('accent3'),
+           accent4: cssvar('accent4'), accent5: cssvar('accent5'), accent6: cssvar('accent6') };
+}
+
+const CHARTS = {};
+function destroy(id){ if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; } }
+
+function c(v){ return (v == null || !isFinite(v)) ? '—' : (+v).toFixed(1) + '¢/L'; }
+function fmtDateISO(iso){ try { return new Date(iso).toLocaleString('en-AU', { timeZone:'Australia/Sydney', dateStyle:'medium', timeStyle:'short' }); } catch(e){ return iso; } }
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Haversine distance in km
+function haversineKm(lat1, lng1, lat2, lng2){
+  const toRad = d => d * Math.PI / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+const ROAD_FACTOR = 1.3; // crow-flies -> road driving estimate
+
+// Extract suburb from a NSW street address like "123 PITT ST SYDNEY NSW 2000"
+// Strategy: strip trailing "NSW <4 digits>", then take the last 1-3 tokens of ALL-CAPS words.
+function suburbFromAddress(addr){
+  if (!addr) return null;
+  const s = String(addr).toUpperCase().trim().replace(/,/g, ' ').replace(/\s+/g, ' ');
+  // Remove trailing state+postcode
+  const cleaned = s.replace(/\s+(NSW|NEW SOUTH WALES)\s+\d{4}\s*$/,'').replace(/\s+\d{4}\s*$/,'').trim();
+  const parts = cleaned.split(' ');
+  if (!parts.length) return null;
+  // Walk back from the end, collecting alpha tokens until we hit a street suffix or number
+  const STREET_SUFFIX = /^(ST|STREET|RD|ROAD|HWY|HIGHWAY|AVE|AVENUE|DR|DRIVE|PDE|PARADE|PL|PLACE|CRES|CRESCENT|CT|COURT|LN|LANE|CL|CLOSE|TCE|TERRACE|WAY|BLVD|BOULEVARD|CIR|CIRCUIT|GR|GROVE|ESP|ESPLANADE|SQ|SQUARE|RDGE|RIDGE|GDN|GARDENS|LOOP|WALK|LINK|CHASE|RISE|VISTA|VIEW)$/;
+  const out = [];
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const t = parts[i];
+    if (/^\d/.test(t)) break;                 // hit a house/unit number
+    if (STREET_SUFFIX.test(t)) break;         // hit a street suffix
+    if (!/^[A-Z][A-Z'\-]*$/.test(t)) break;   // not a plain word
+    out.unshift(t);
+    if (out.length >= 3) break;               // cap at 3 tokens (e.g. "NORTH PORT MACQUARIE")
+  }
+  if (!out.length) return null;
+  // Title-case for display
+  return out.map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+}
+
+// ==== VIEW BUILDER ====
+// Given current filter state, produce a computed view: {stations, pricesForFuel, byFuelType, byRegion, byBrand, cheapest, expensive, dist}
+function buildView(){
+  const allStations = SUMMARY.stations || [];
+  const allPrices = SUMMARY.prices || {};
+  let idxs = allStations.map((_, i) => i);
+  if (HOME) {
+    idxs = idxs.filter(i => {
+      const s = allStations[i];
+      if (s.lat == null || s.lng == null) return false;
+      return haversineKm(HOME.lat, HOME.lng, s.lat, s.lng) <= RADIUS_KM;
+    });
+  }
+  const inView = new Set(idxs);
+
+  // price rows for selected fuel, scoped to view
+  const pricesF = (allPrices[CURRENT_FUEL] || []).filter(r => inView.has(r.i));
+  // ALL fuel types' price rows scoped to view -- for byFuelType bar
+  const byFuelType = [];
+  for (const ft of Object.keys(allPrices)) {
+    const rows = allPrices[ft].filter(r => inView.has(r.i));
+    if (!rows.length) continue;
+    const vals = rows.map(r => r.p).sort((a,b) => a - b);
+    byFuelType.push({ fuelType: ft, n: vals.length, median: quantile(vals, 0.5), min: vals[0], max: vals[vals.length-1], p10: quantile(vals,.1), p90: quantile(vals,.9) });
+  }
+  byFuelType.sort((a,b) => b.n - a.n);
+
+  // by region (for current fuel)
+  const byRegionMap = new Map();
+  for (const r of pricesF) {
+    const s = allStations[r.i];
+    const key = s.region || 'Other NSW';
+    if (!byRegionMap.has(key)) byRegionMap.set(key, []);
+    byRegionMap.get(key).push(r.p);
+  }
+  const byRegion = [...byRegionMap.entries()].map(([region, arr]) => ({
+    region, n: arr.length, median: quantile(arr.sort((a,b)=>a-b), 0.5)
+  })).sort((a,b) => a.median - b.median);
+
+  // by brand (for current fuel)
+  const byBrandMap = new Map();
+  for (const r of pricesF) {
+    const s = allStations[r.i];
+    const key = s.brand || 'Unknown';
+    if (!byBrandMap.has(key)) byBrandMap.set(key, []);
+    byBrandMap.get(key).push(r.p);
+  }
+  const byBrand = [...byBrandMap.entries()]
+    .filter(([, arr]) => arr.length >= Math.min(5, Math.max(1, Math.floor(pricesF.length / 50))))
+    .map(([brand, arr]) => ({ brand, n: arr.length, median: quantile(arr.sort((a,b)=>a-b), 0.5), min: arr[0], max: arr[arr.length-1] }))
+    .sort((a,b) => a.median - b.median);
+
+  // by suburb (for current fuel) — cache suburb on the station record lazily
+  const bySuburbMap = new Map();
+  for (const r of pricesF) {
+    const s = allStations[r.i];
+    if (s._suburb === undefined) s._suburb = suburbFromAddress(s.address);
+    const key = s._suburb;
+    if (!key) continue;
+    if (!bySuburbMap.has(key)) bySuburbMap.set(key, []);
+    bySuburbMap.get(key).push(r.p);
+  }
+  const minN = HOME ? 1 : 2;   // zoomed-in view can surface single-station suburbs; statewide needs ≥2
+  const suburbStats = [...bySuburbMap.entries()]
+    .filter(([, arr]) => arr.length >= minN)
+    .map(([suburb, arr]) => ({ suburb, n: arr.length, median: quantile(arr.sort((a,b)=>a-b), 0.5) }));
+  // Cheapest 25 (ascending, cheapest at top of bar chart after reverse for display)
+  const bySuburbCheapest = [...suburbStats].sort((a,b) => a.median - b.median).slice(0, 25);
+  // Most expensive 25 (descending, most expensive at top)
+  const bySuburbExpensive = [...suburbStats].sort((a,b) => b.median - a.median).slice(0, 25);
+
+  // cheapest & most expensive
+  const ranked = [...pricesF].sort((a,b) => a.p - b.p);
+  const enrich = r => { const s = allStations[r.i]; return { ...s, price: r.p, dist: HOME && s.lat ? haversineKm(HOME.lat, HOME.lng, s.lat, s.lng) : null }; };
+  const cheapest = ranked.slice(0, 15).map(enrich);
+  const expensive = ranked.slice(-15).reverse().map(enrich);
+
+  // distribution
+  const dist = [];
+  const vals = pricesF.map(r => r.p).sort((a,b) => a - b);
+  if (vals.length) {
+    const lo = Math.floor(vals[0] / 5) * 5;
+    const hi = Math.ceil(vals[vals.length - 1] / 5) * 5;
+    for (let b = lo; b < hi; b += 5) dist.push({ low: b, high: b+5, count: vals.filter(v => v >= b && v < b+5).length });
+  }
+
+  return { allStations, pricesF, byFuelType, byRegion, byBrand, bySuburbCheapest, bySuburbExpensive, cheapest, expensive, dist, n: pricesF.length };
+}
+
+function quantile(sorted, q){
+  if (!sorted.length) return null;
+  const pos = (sorted.length - 1) * q, base = Math.floor(pos), rest = pos - base;
+  return sorted[base+1] !== undefined ? sorted[base] + rest * (sorted[base+1] - sorted[base]) : sorted[base];
+}
+
+// ==== FILTER UI ====
+function renderFuelFilter(){
+  const row = document.getElementById('filter-row');
+  if (!row) return;
+  const types = (SUMMARY.byFuelType || []).map(f => f.fuelType);
+  row.innerHTML = types.map(t => {
+    const active = t === CURRENT_FUEL ? ' active' : '';
+    return `<button class="${active.trim()}" data-fuel="${t}" onclick="applyFuel('${t}')">${t}</button>`;
+  }).join('');
+}
+function applyFuel(fuel){
+  if (!fuel) return;
+  CURRENT_FUEL = fuel;
+  document.querySelectorAll('#filter-row button').forEach(b => b.classList.toggle('active', b.dataset.fuel === fuel));
+  renderAll();
+}
+
+// ==== LOCATION ====
+document.getElementById('loc-radius').addEventListener('input', e => {
+  RADIUS_KM = +e.target.value;
+  document.getElementById('loc-radius-val').textContent = RADIUS_KM + ' km';
+});
+async function applyLocation(){
+  const pc = (document.getElementById('loc-pc').value || '').trim();
+  const addr = (document.getElementById('loc-addr').value || '').trim();
+  const status = document.getElementById('loc-status');
+  if (!pc && !addr) {
+    status.className = 'loc-status error';
+    status.textContent = 'Enter a postcode or a full address.';
+    return;
+  }
+  // Address takes precedence if provided (more accurate)
+  if (addr) {
+    status.className = 'loc-status';
+    status.textContent = 'Looking up address…';
+    try {
+      const coords = await geocodeAddress(addr);
+      // If address contained a 4-digit postcode, pull it so the drive card can show it
+      const pcMatch = addr.match(/\b(\d{4})\b/);
+      const inferredPc = pcMatch ? pcMatch[1] : (pc || '—');
+      HOME = { lat: coords.lat, lng: coords.lng, postcode: inferredPc, label: coords.label, precision: 'address' };
+      document.getElementById('drive-pc').value = inferredPc;
+      status.className = 'loc-status active';
+      status.textContent = `Scoped to within ${RADIUS_KM} km of ${coords.label} (street-level accuracy).`;
+      renderAll();
+      return;
+    } catch (e) {
+      status.className = 'loc-status error';
+      status.textContent = 'Could not find that address. Try simplifying (street + suburb + NSW) or use a postcode instead.';
+      return;
+    }
+  }
+  // Postcode path
+  if (!/^\d{4}$/.test(pc)) {
+    status.className = 'loc-status error';
+    status.textContent = 'Enter a valid 4-digit NSW postcode.';
+    return;
+  }
+  status.className = 'loc-status';
+  status.textContent = 'Looking up postcode…';
+  try {
+    const coords = await geocodePostcode(pc);
+    HOME = { lat: coords.lat, lng: coords.lng, postcode: pc, label: coords.label, precision: 'postcode' };
+    document.getElementById('drive-pc').value = pc;
+    status.className = 'loc-status active';
+    status.textContent = `Scoped to within ${RADIUS_KM} km of postcode ${pc} (${coords.label}) — suburb-centroid accuracy.`;
+    renderAll();
+  } catch (e) {
+    status.className = 'loc-status error';
+    status.textContent = 'Could not find that postcode. Try another.';
+  }
+}
+function clearLocation(){
+  HOME = null;
+  document.getElementById('loc-pc').value = '';
+  document.getElementById('loc-addr').value = '';
+  document.getElementById('drive-pc').value = '';
+  document.getElementById('drive-result').innerHTML = '<p style="color:var(--text-muted);font-size:13px;margin:0">Enter a postcode or address in the panel above, set your car details, then click Calculate.</p>';
+  const status = document.getElementById('loc-status');
+  status.className = 'loc-status';
+  status.textContent = 'Showing data for all of NSW. Enter a postcode or full address to scope the dashboard to your area.';
+  renderAll();
+}
+
+// Address geocoder — Nominatim only (no postcode-specific API covers free-form addresses).
+// Cached in localStorage to respect the 1 req/sec Nominatim usage policy.
+async function geocodeAddress(addr){
+  const cacheKey = 'fd-geo-addr-' + addr.toLowerCase().replace(/\s+/g,' ').trim();
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch(e){}
+  // Add "Australia" if missing so we bias correctly
+  let q = addr;
+  if (!/australia/i.test(q)) q += ', Australia';
+  if (!/nsw|new south wales/i.test(q)) q = q.replace(/, australia/i, ', NSW, Australia');
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=au&addressdetails=1`;
+  const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+  if (!res.ok) throw new Error('Nominatim failed');
+  const body = await res.json();
+  if (!body.length) throw new Error('Not found');
+  const r = body[0];
+  const out = {
+    lat: +r.lat,
+    lng: +r.lon,
+    label: r.display_name.split(',').slice(0, 3).join(',').trim()
+  };
+  try { localStorage.setItem(cacheKey, JSON.stringify(out)); } catch(e){}
+  return out;
+}
+
+async function geocodePostcode(pc){
+  const cacheKey = 'fd-geo-' + pc;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch(e){}
+  // Primary: zippopotam.us (CORS-friendly, postcode-specific, no headers required)
+  try {
+    const res = await fetch(`https://api.zippopotam.us/au/${pc}`);
+    if (res.ok) {
+      const body = await res.json();
+      const places = Array.isArray(body.places) ? body.places : [];
+      const nsw = places.find(p => /New South Wales|NSW/i.test(p.state || p['state abbreviation'] || '')) || places[0];
+      if (nsw && nsw.latitude && nsw.longitude) {
+        const out = { lat: +nsw.latitude, lng: +nsw.longitude, label: `${nsw['place name']}, NSW` };
+        try { localStorage.setItem(cacheKey, JSON.stringify(out)); } catch(e){}
+        return out;
+      }
+    }
+  } catch(e){}
+  // Fallback: Nominatim free-text query (relaxed params)
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${pc}%20NSW%20Australia&format=json&limit=1&countrycodes=au`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (res.ok) {
+      const body = await res.json();
+      if (body.length) {
+        const r = body[0];
+        const out = { lat: +r.lat, lng: +r.lon, label: r.display_name.split(',').slice(0, 2).join(',').trim() };
+        try { localStorage.setItem(cacheKey, JSON.stringify(out)); } catch(e){}
+        return out;
+      }
+    }
+  } catch(e){}
+  throw new Error('Not found');
+}
+
+// ==== RENDERERS ====
+function renderKPIs(view){
+  const byf = view.byFuelType.find(f => f.fuelType === CURRENT_FUEL) || {};
+  document.getElementById('pulled').textContent = 'Pulled ' + fmtDateISO(SUMMARY.kpi?.updated);
+  const scope = HOME ? `within ${RADIUS_KM} km of ${HOME.postcode}` : 'across NSW';
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Stations (${CURRENT_FUEL})</div><div class="kpi-value">${(byf.n || 0).toLocaleString()}</div><div class="kpi-sub">${scope}</div></div>
+    <div class="kpi"><div class="kpi-label">Median price</div><div class="kpi-value">${c(byf.median)}</div><div class="kpi-sub">typical price</div></div>
+    <div class="kpi"><div class="kpi-label">Cheapest</div><div class="kpi-value" style="color:var(--accent6)">${c(byf.min)}</div><div class="kpi-sub">lowest in view</div></div>
+    <div class="kpi"><div class="kpi-label">Most expensive</div><div class="kpi-value" style="color:var(--accent4)">${c(byf.max)}</div><div class="kpi-sub">highest in view</div></div>
+    <div class="kpi"><div class="kpi-label">Spread (P10–P90)</div><div class="kpi-value">${byf.p90 != null && byf.p10 != null ? c(byf.p90 - byf.p10) : '—'}</div><div class="kpi-sub">${c(byf.p10)} – ${c(byf.p90)}</div></div>
+  `;
+}
+function baseOpt({xTitle, yTitle} = {}){
+  const p = palette();
+  return { responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ color:p.text, font:{size:11} } }, tooltip:{ backgroundColor:p.text, titleColor:'#fff', bodyColor:'#fff' } },
+    scales:{
+      x:{ grid:{color:p.border,drawBorder:false}, ticks:{color:p.muted,font:{size:11}}, title: xTitle?{display:true,text:xTitle,color:p.muted,font:{size:11}}:undefined },
+      y:{ grid:{color:p.border,drawBorder:false}, ticks:{color:p.muted,font:{size:11}}, title: yTitle?{display:true,text:yTitle,color:p.muted,font:{size:11}}:undefined }
+    }
+  };
+}
+function renderDist(view){
+  destroy('c-dist');
+  const p = palette();
+  if (!view.dist.length) { document.getElementById('c-dist').parentElement.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0">No data in this view.</p>'; return; }
+  CHARTS['c-dist'] = new Chart(document.getElementById('c-dist'), {
+    type:'bar',
+    data:{ labels: view.dist.map(b => `${b.low}–${b.high}`), datasets:[{ label:'Stations', data: view.dist.map(b => b.count), backgroundColor: cssvar('nsw-blue-2'), borderRadius:3 }] },
+    options: baseOpt({ xTitle:'Price (¢/L)', yTitle:'Stations' })
+  });
+}
+function renderByFuel(view){
+  destroy('c-byfuel');
+  const p = palette();
+  CHARTS['c-byfuel'] = new Chart(document.getElementById('c-byfuel'), {
+    type:'bar',
+    data:{ labels: view.byFuelType.map(r => r.fuelType), datasets:[{ label:'Median ¢/L', data: view.byFuelType.map(r => r.median), backgroundColor: view.byFuelType.map(r => r.fuelType === CURRENT_FUEL ? p.accent4 : p.accent), borderRadius:3 }] },
+    options: baseOpt({ xTitle:'Fuel type', yTitle:'¢/L' })
+  });
+}
+function renderRegion(view){
+  destroy('c-region');
+  const p = palette();
+  if (!view.byRegion.length) return;
+  CHARTS['c-region'] = new Chart(document.getElementById('c-region'), {
+    type:'bar',
+    data:{ labels: view.byRegion.map(r => `${r.region} (${r.n})`), datasets:[{ label:'Median ¢/L', data: view.byRegion.map(r => r.median), backgroundColor: cssvar('nsw-blue-2'), borderRadius:3 }] },
+    options:{ ...baseOpt({xTitle:'¢/L'}), indexAxis:'y' }
+  });
+}
+function renderBrand(view){
+  destroy('c-brand');
+  if (!view.byBrand.length) return;
+  // Every brand that qualifies (≥5 stations on current fuel), sorted cheapest → expensive
+  const rows = [...view.byBrand].sort((a,b) => a.median - b.median);
+  // Tercile colouring across all visible brands: green / amber / red
+  const medians = rows.map(r => r.median);
+  const t1 = medians[Math.floor(medians.length / 3)];
+  const t2 = medians[Math.floor(medians.length * 2 / 3)];
+  const blue = cssvar('cheap'), amber = cssvar('accent5'), red = cssvar('accent4');
+  const colours = rows.map(r => r.median <= t1 ? blue : (r.median >= t2 ? red : amber));
+  CHARTS['c-brand'] = new Chart(document.getElementById('c-brand'), {
+    type:'bar',
+    data:{ labels: rows.map(r => `${r.brand} (${r.n})`), datasets:[{ label:'Median ¢/L', data: medians, backgroundColor: colours, borderRadius:3 }] },
+    options:{ ...baseOpt({xTitle:'¢/L'}), indexAxis:'y' }
+  });
+}
+// Chart.js plugin: draw each bar's value just past the bar end (outside the bar).
+const barValueLabels = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart){
+    const { ctx, data, chartArea, scales } = chart;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data) return;
+    ctx.save();
+    ctx.font = '600 11px ' + getComputedStyle(document.body).fontFamily;
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text').trim() || '#2B3440';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    meta.data.forEach((bar, i) => {
+      const v = data.datasets[0].data[i];
+      if (v == null) return;
+      const label = v.toFixed(1) + ' ¢/L';
+      const x = bar.x + 6; // 6px past bar end
+      const y = bar.y;
+      // Clip so labels don't run off the right edge of the chart area
+      if (x < chartArea.right - 4) ctx.fillText(label, x, y);
+    });
+    ctx.restore();
+  }
+};
+
+function suburbChartOptions(minX, maxX){
+  // Hide x axis labels/ticks/grid entirely; labels go at the end of each bar.
+  const base = baseOpt();
+  return {
+    ...base,
+    indexAxis: 'y',
+    layout: { padding: { right: 50 } }, // space for the value labels sitting past bar ends
+    plugins: { ...base.plugins, legend: { display: false } },
+    scales: {
+      x: { min: minX, max: maxX, display: false, grid: { display: false }, ticks: { display: false } },
+      y: base.scales.y
+    }
+  };
+}
+
+function renderSuburbChart(canvasId, rows, barColor, sharedRange){
+  destroy(canvasId);
+  const mount = document.getElementById(canvasId);
+  if (!mount) return;
+  if (!rows || !rows.length) {
+    mount.parentElement.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0">Not enough suburb data in this view.</p>';
+    return;
+  }
+  CHARTS[canvasId] = new Chart(mount, {
+    type: 'bar',
+    data: {
+      labels: rows.map(r => `${r.suburb} (${r.n})`),
+      datasets: [{ label: 'Median ¢/L', data: rows.map(r => r.median), backgroundColor: barColor, borderRadius: 3 }]
+    },
+    options: suburbChartOptions(sharedRange.min, sharedRange.max),
+    plugins: [barValueLabels]
+  });
+}
+
+function renderSuburb(view){
+  const cheap = view.bySuburbCheapest || [];
+  const exp   = view.bySuburbExpensive || [];
+  if (!cheap.length && !exp.length) {
+    // Both empty — fall through to the individual renderer null-state below
+    renderSuburbChart('c-suburb-cheap', cheap, cssvar('cheap'), { min: 0, max: 1 });
+    renderSuburbChart('c-suburb-exp',   exp,   cssvar('accent4'), { min: 0, max: 1 });
+    return;
+  }
+  // Shared x-range across both charts so the price gap is immediately visible.
+  const all = [...cheap, ...exp].map(r => r.median);
+  const lo  = Math.min(...all);
+  const hi  = Math.max(...all);
+  const pad = Math.max(2, (hi - lo) * 0.04);
+  const range = { min: Math.floor((lo - pad) * 10) / 10, max: Math.ceil((hi + pad) * 10) / 10 };
+  // Reverse so top of chart = cheapest (cheap chart) / most expensive (exp chart)
+  renderSuburbChart('c-suburb-cheap', [...cheap].reverse(), cssvar('cheap'),   range);
+  renderSuburbChart('c-suburb-exp',   [...exp].reverse(),   cssvar('accent4'), range);
+}
+function renderStationTable(mountId, stations, highlightColor){
+  const mount = document.getElementById(mountId);
+  if (!stations.length) { mount.innerHTML = '<p style="color:var(--text-muted)">No data.</p>'; return; }
+  const distCol = HOME ? '<th class="num" title="Straight-line (crow-flies) distance from your location to each station. Real driving is typically 20–40% further.">Dist <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-subtle)">(straight)</span></th>' : '';
+  const rows = stations.map((s, i) => `
+    <tr>
+      <td class="num">${i+1}</td>
+      <td><strong>${escapeHtml(s.name)}</strong><br><span style="color:var(--text-muted);font-size:12px">${escapeHtml(s.address)}</span></td>
+      <td>${escapeHtml(s.brand)}</td>
+      <td>${escapeHtml(s.region)}</td>
+      ${HOME ? `<td class="num" title="Straight-line distance">${s.dist != null ? s.dist.toFixed(1) + ' km' : '—'}</td>` : ''}
+      <td class="num" style="color:${highlightColor};font-weight:700">${c(s.price)}</td>
+    </tr>`).join('');
+  const footer = HOME ? `<p style="color:var(--text-subtle);font-size:11px;margin:8px 0 0">Distances are <strong>straight-line</strong> (haversine) from your ${HOME.precision === 'address' ? 'address' : 'postcode centroid'}. Actual driving distance will be longer — see the Worth the Drive calculator below for a road-adjusted estimate.</p>` : '';
+  mount.innerHTML = `<table><thead><tr><th>#</th><th>Station</th><th>Brand</th><th>Region</th>${distCol}<th class="num">Price</th></tr></thead><tbody>${rows}</tbody></table>${footer}`;
+}
+
+// ==== MAP ====
+// Three-tier zoom viz:
+//   z <= 7:  heatmap (state-wide texture)
+//   z 8-9:   LGA choropleth (local-government-area medians)
+//   z >= 10: coloured station markers (per-station price)
+// Swaps driven by a zoomend handler.
+const ZOOM_LGA     = 8;    // zoom >= this (but < ZOOM_MARKERS) → LGA choropleth
+const ZOOM_MARKERS = 10;   // zoom >= this → station markers
+const ZOOM_SWAP    = ZOOM_MARKERS;  // kept for backwards compatibility
+
+let MAP = null, HEAT = null, MARKERS = null, LGA_LAYER = null;
+let HOME_MARKER = null, RADIUS_CIRCLE = null;
+let MAP_VIEW_CACHE = null;  // last view passed to renderMap, so zoomend can re-render
+let LGA_GEOJSON   = null;   // lazy-loaded FeatureCollection
+let LGA_GEOJSON_PROMISE = null;
+
+function priceTier(price, lo, mid, hi){
+  // Terciles → blue / amber / red
+  if (price <= lo) return { color: '#22A7F2', label: 'Cheaper' };
+  if (price >= hi) return { color: '#D7153A', label: 'More expensive' };
+  return { color: '#FDB415', label: 'Near median' };
+}
+
+function rebuildHeat(view){
+  if (HEAT) { MAP.removeLayer(HEAT); HEAT = null; }
+  const points = view.pricesF
+    .map(r => { const s = view.allStations[r.i]; return (s.lat && s.lng) ? [s.lat, s.lng, r.p] : null; })
+    .filter(Boolean);
+  if (!points.length) return;
+  const prices = points.map(p => p[2]).sort((a,b) => a - b);
+  const lo = prices[Math.floor(prices.length * 0.05)];
+  const hi = prices[Math.floor(prices.length * 0.95)];
+  const span = Math.max(1, hi - lo);
+  const heatPts = points.map(([lat, lng, p]) => [lat, lng, Math.max(0, Math.min(1, (p - lo) / span))]);
+  HEAT = L.heatLayer(heatPts, {
+    radius: HOME ? 22 : 14, blur: 18, maxZoom: 12,
+    gradient: { 0.0: '#22A7F2', 0.3: '#7FC5EE', 0.5: '#FDB415', 0.7: '#E8712C', 1.0: '#D7153A' }
+  }).addTo(MAP);
+}
+
+function rebuildMarkers(view){
+  if (MARKERS) { MAP.removeLayer(MARKERS); MARKERS = null; }
+  const rows = view.pricesF
+    .map(r => { const s = view.allStations[r.i]; return (s.lat && s.lng) ? { s, price: r.p } : null; })
+    .filter(Boolean);
+  if (!rows.length) return;
+  const sorted = rows.map(r => r.price).sort((a,b) => a - b);
+  const t1 = sorted[Math.floor(sorted.length / 3)];
+  const t2 = sorted[Math.floor(sorted.length * 2 / 3)];
+  MARKERS = L.layerGroup();
+  for (const { s, price } of rows) {
+    const tier = priceTier(price, t1, null, t2);
+    const m = L.circleMarker([s.lat, s.lng], {
+      radius: 5, color: '#fff', weight: 1,
+      fillColor: tier.color, fillOpacity: 0.9
+    });
+    m.bindPopup(`<strong>${escapeHtml(s.name)}</strong><br>
+      <span style="color:#5C6B78">${escapeHtml(s.brand)} · ${escapeHtml(s.region || '')}</span><br>
+      ${escapeHtml(s.address)}<br>
+      <strong style="color:${tier.color}">${c(price)}</strong> · ${tier.label}`);
+    MARKERS.addLayer(m);
+  }
+  MARKERS.addTo(MAP);
+}
+
+function loadLGAGeoJSON(){
+  if (LGA_GEOJSON) return Promise.resolve(LGA_GEOJSON);
+  if (LGA_GEOJSON_PROMISE) return LGA_GEOJSON_PROMISE;
+  LGA_GEOJSON_PROMISE = fetch('./lga-nsw.geojson')
+    .then(r => { if (!r.ok) throw new Error('LGA fetch ' + r.status); return r.json(); })
+    .then(gj => { LGA_GEOJSON = gj; return gj; })
+    .catch(err => { console.warn('LGA choropleth unavailable:', err); LGA_GEOJSON_PROMISE = null; return null; });
+  return LGA_GEOJSON_PROMISE;
+}
+
+function rebuildLGA(view){
+  if (LGA_LAYER) { MAP.removeLayer(LGA_LAYER); LGA_LAYER = null; }
+  if (!LGA_GEOJSON) return;
+  // Build LGA median-price lookup filtered to the current fuel type
+  const byLga = (SUMMARY.byLGA || []).filter(r => r.fuelType === CURRENT_FUEL);
+  if (!byLga.length) return;
+  const lookup = new Map();
+  for (const r of byLga) lookup.set(r.lga, r);
+  // Tercile thresholds across LGAs in view
+  const medians = byLga.map(r => r.median).sort((a,b) => a - b);
+  const t1 = medians[Math.floor(medians.length / 3)];
+  const t2 = medians[Math.floor(medians.length * 2 / 3)];
+  const colorFor = (m) => {
+    if (m == null) return 'transparent';
+    if (m <= t1) return '#22A7F2';
+    if (m >= t2) return '#D7153A';
+    return '#FDB415';
+  };
+  LGA_LAYER = L.geoJSON(LGA_GEOJSON, {
+    style: (f) => {
+      const name = f.properties && (f.properties.lga_name || f.properties.abb_name);
+      const rec = lookup.get(name);
+      return {
+        color: '#0058AF', weight: 0.5, opacity: 0.6,
+        fillColor: rec ? colorFor(rec.median) : '#E4ECF4',
+        fillOpacity: rec ? 0.55 : 0.08
+      };
+    },
+    onEachFeature: (f, layer) => {
+      const name = f.properties && (f.properties.lga_name || f.properties.abb_name);
+      const rec = lookup.get(name);
+      const abb = (f.properties && f.properties.abb_name) || name;
+      if (rec) {
+        layer.bindPopup(`<strong>${escapeHtml(abb)}</strong><br>
+          <span style="color:#5C6B78">${escapeHtml(CURRENT_FUEL)} · ${rec.n} station${rec.n === 1 ? '' : 's'}</span><br>
+          Median <strong style="color:${colorFor(rec.median)}">${c(rec.median)}</strong><br>
+          <span style="color:#5C6B78;font-size:11px">Min ${c(rec.min)} · Max ${c(rec.max)}</span>`);
+      } else {
+        layer.bindPopup(`<strong>${escapeHtml(abb)}</strong><br><span style="color:#5C6B78">No ${escapeHtml(CURRENT_FUEL)} pricing data</span>`);
+      }
+    }
+  }).addTo(MAP);
+}
+
+function updateMapLayers(){
+  if (!MAP || !MAP_VIEW_CACHE) return;
+  const z = MAP.getZoom();
+  if (z >= ZOOM_MARKERS) {
+    if (HEAT)      { MAP.removeLayer(HEAT);      HEAT = null; }
+    if (LGA_LAYER) { MAP.removeLayer(LGA_LAYER); LGA_LAYER = null; }
+    if (!MARKERS)  rebuildMarkers(MAP_VIEW_CACHE);
+  } else if (z >= ZOOM_LGA) {
+    if (HEAT)    { MAP.removeLayer(HEAT);    HEAT = null; }
+    if (MARKERS) { MAP.removeLayer(MARKERS); MARKERS = null; }
+    if (!LGA_LAYER) {
+      loadLGAGeoJSON().then(gj => {
+        // Only rebuild if the user is still at LGA zoom tier
+        const zNow = MAP.getZoom();
+        if (gj && zNow >= ZOOM_LGA && zNow < ZOOM_MARKERS && !LGA_LAYER) {
+          rebuildLGA(MAP_VIEW_CACHE);
+        }
+      });
+    }
+  } else {
+    if (MARKERS)   { MAP.removeLayer(MARKERS);   MARKERS = null; }
+    if (LGA_LAYER) { MAP.removeLayer(LGA_LAYER); LGA_LAYER = null; }
+    if (!HEAT) rebuildHeat(MAP_VIEW_CACHE);
+  }
+}
+
+function renderMap(view){
+  if (!MAP) {
+    MAP = L.map('map', { scrollWheelZoom: false, zoomControl: true }).setView([-33.5, 146.5], 6);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, subdomains: 'abcd',
+      attribution: '© OpenStreetMap contributors © CARTO'
+    }).addTo(MAP);
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = `<strong>Price vs view</strong><br>
+        <span class="sw" style="background:#22A7F2"></span> Cheaper third<br>
+        <span class="sw" style="background:#FDB415"></span> Middle third<br>
+        <span class="sw" style="background:#D7153A"></span> More expensive<br>
+        <span style="color:#5C6B78;font-size:11px">Zoom out → heatmap.<br>Mid zoom → LGA medians.<br>Zoom in → station markers.</span>`;
+      return div;
+    };
+    legend.addTo(MAP);
+    MAP.on('zoomend', updateMapLayers);
+  }
+  // Wipe dynamic layers; we'll re-add the correct one based on zoom
+  if (HEAT)      { MAP.removeLayer(HEAT);      HEAT = null; }
+  if (MARKERS)   { MAP.removeLayer(MARKERS);   MARKERS = null; }
+  if (LGA_LAYER) { MAP.removeLayer(LGA_LAYER); LGA_LAYER = null; }
+  if (HOME_MARKER)   { MAP.removeLayer(HOME_MARKER);   HOME_MARKER = null; }
+  if (RADIUS_CIRCLE) { MAP.removeLayer(RADIUS_CIRCLE); RADIUS_CIRCLE = null; }
+
+  MAP_VIEW_CACHE = view;
+
+  if (HOME) {
+    HOME_MARKER = L.circleMarker([HOME.lat, HOME.lng], { radius: 7, color: '#002664', weight: 2, fillColor: '#fff', fillOpacity: 1 }).addTo(MAP);
+    HOME_MARKER.bindPopup(`<strong>Postcode ${HOME.postcode}</strong><br>${escapeHtml(HOME.label)}`);
+    RADIUS_CIRCLE = L.circle([HOME.lat, HOME.lng], { radius: RADIUS_KM * 1000, color: '#0058AF', fillOpacity: 0.05, weight: 1 }).addTo(MAP);
+    MAP.fitBounds(RADIUS_CIRCLE.getBounds(), { padding: [30, 30] });
+  } else {
+    MAP.setView([-33.5, 146.5], 6);
+  }
+  // Pick layer based on the zoom we just settled at
+  updateMapLayers();
+}
+
+// ==== DRIVE CALCULATOR ====
+function calcDrive(){
+  const out = document.getElementById('drive-result');
+  if (!HOME) { out.innerHTML = '<p style="color:var(--accent4);font-size:13px;margin:0">Please set a postcode in the panel above first.</p>'; return; }
+  const econ = +document.getElementById('drive-econ').value;
+  const fill = +document.getElementById('drive-fill').value;
+  const maxKm = +document.getElementById('drive-maxkm').value;
+  const hourly = +document.getElementById('drive-time').value || 0;
+  if (!(econ > 0 && fill > 0 && maxKm > 0)) {
+    out.innerHTML = '<p style="color:var(--accent4);font-size:13px;margin:0">Please enter positive numbers for car details.</p>';
+    return;
+  }
+  const allPrices = (SUMMARY.prices || {})[CURRENT_FUEL] || [];
+  const stns = SUMMARY.stations || [];
+  // Build candidate list with driving distance
+  const candidates = allPrices.map(r => {
+    const s = stns[r.i];
+    if (s.lat == null || s.lng == null) return null;
+    const crow = haversineKm(HOME.lat, HOME.lng, s.lat, s.lng);
+    const drive = crow * ROAD_FACTOR;
+    if (drive > maxKm) return null;
+    return { ...s, price: r.p, crow, drive };
+  }).filter(Boolean);
+  if (!candidates.length) {
+    out.innerHTML = `<p style="color:var(--text-muted);font-size:13px;margin:0">No ${CURRENT_FUEL} stations within ${maxKm} km driving of postcode ${HOME.postcode}.</p>`;
+    return;
+  }
+  // Baseline = median of stations within 3 km of home (or cheapest of them)
+  const nearby = candidates.filter(s => s.drive <= 3);
+  const baselinePrices = (nearby.length ? nearby : candidates.filter(s => s.drive <= 5)).map(s => s.price).sort((a,b) => a - b);
+  const baseline = baselinePrices.length ? baselinePrices[Math.floor(baselinePrices.length / 2)] : candidates.reduce((a,b) => a.price < b.price ? a : b).price;
+
+  // Net savings for each candidate (vs baseline)
+  const results = candidates.map(s => {
+    const roundTrip = 2 * s.drive;
+    const litresBurned = (roundTrip / 100) * econ;
+    // Use baseline as the price of fuel we'd burn (conservative)
+    const fuelCost = litresBurned * (baseline / 100); // cents to dollars
+    const timeHrs = roundTrip / 50; // assume 50 km/h avg
+    const timeCost = timeHrs * hourly;
+    const savings = ((baseline - s.price) / 100) * fill; // dollars
+    const net = savings - fuelCost - timeCost;
+    return { ...s, roundTrip, litresBurned, fuelCost, timeHrs, timeCost, savings, net };
+  }).sort((a,b) => b.net - a.net);
+
+  const top = results.slice(0, 10);
+  const best = top[0];
+  const nearest = candidates.sort((a,b) => a.drive - b.drive)[0];
+
+  let summary = '';
+  if (best && best.net > 0.5) {
+    summary = `<div class="drive-summary">Best option: drive <strong>${best.drive.toFixed(1)} km</strong> to <strong>${escapeHtml(best.name)}</strong> (${escapeHtml(best.brand)}) at <strong>${c(best.price)}</strong>. Net saving after ${best.litresBurned.toFixed(2)} L burned on the detour: <strong>$${best.net.toFixed(2)}</strong> per fill${hourly > 0 ? ` (time valued at $${hourly}/hr)` : ''}.</div>`;
+  } else if (nearest) {
+    summary = `<div class="drive-summary" style="border-left-color:var(--accent4)">No meaningful savings nearby. Your closest station is <strong>${escapeHtml(nearest.name)}</strong> at ${c(nearest.price)} (${nearest.drive.toFixed(1)} km). Net savings from driving further are under $0.50 per fill — not worth it.</div>`;
+  }
+
+  const rows = top.map((s, i) => {
+    const cls = s.net > 0.5 ? 'good' : (s.net < 0 ? 'bad' : '');
+    return `<div class="drive-row">
+      <div class="num" style="font-family:var(--mono)">${i+1}</div>
+      <div><strong>${escapeHtml(s.name)}</strong><br><span style="color:var(--text-muted);font-size:12px">${escapeHtml(s.brand)} · ${escapeHtml(s.address)}</span></div>
+      <div class="num" style="font-family:var(--mono)">${s.drive.toFixed(1)} km</div>
+      <div class="num" style="font-family:var(--mono)">${c(s.price)}</div>
+      <div class="num" style="font-family:var(--mono)">$${s.savings.toFixed(2)}</div>
+      <div class="num net ${cls}" style="font-family:var(--mono)">$${s.net.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+  const header = `<div class="drive-row head"><div>#</div><div>Station</div><div class="num" title="Straight-line × 1.3 road factor, one way">Drive (est.)</div><div class="num">Price</div><div class="num" title="(Baseline − station price) × your fill">Savings</div><div class="num" title="Savings minus fuel burnt on the detour and optional time cost">Net</div></div>`;
+  out.innerHTML = `${summary}<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">${header}${rows}</div><p style="font-size:12px;color:var(--text-subtle);margin-top:10px">Baseline price used: ${c(baseline)} (median of stations within 3 km of ${HOME.postcode}).</p>`;
+}
+
+// ==== RENDER ALL ====
+function renderAll(){
+  const view = buildView();
+  renderKPIs(view);
+  renderDist(view);
+  renderByFuel(view);
+  renderRegion(view);
+  renderSuburb(view);
+  renderBrand(view);
+  renderStationTable('cheapest-table', view.cheapest, 'var(--accent6)');
+  renderStationTable('expensive-table', view.expensive, 'var(--accent4)');
+  // Map takes a beat to initialise if the tab was hidden
+  setTimeout(() => renderMap(view), 0);
+  if (MAP) setTimeout(() => MAP.invalidateSize(), 100);
+}
+
+// ==== BOOTSTRAP ====
+function bootstrap(){
+  const types = (SUMMARY.byFuelType || []).map(f => f.fuelType);
+  CURRENT_FUEL = types.includes('U91') ? 'U91' : (types[0] || null);
+  renderFuelFilter();
+  if (CURRENT_FUEL) renderAll();
+  else document.getElementById('kpi-row').innerHTML = '<div class="kpi"><div class="kpi-label">No data</div><div class="kpi-value">—</div><div class="kpi-sub">Awaiting first API snapshot</div></div>';
+}
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootstrap);
+  else bootstrap();
+}
+</script>
+</body>
+</html>

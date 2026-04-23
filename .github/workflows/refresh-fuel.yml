@@ -1,0 +1,51 @@
+name: Refresh fuel dashboard
+
+on:
+  schedule:
+    # Every hour on the hour
+    - cron: '0 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install fuel/ dependencies
+        working-directory: fuel
+        run: npm install --no-audit --no-fund --silent
+
+      - name: Fetch prices from NSW FuelCheck API
+        working-directory: fuel
+        env:
+          NSW_FUEL_KEY:    ${{ secrets.NSW_FUEL_KEY }}
+          NSW_FUEL_SECRET: ${{ secrets.NSW_FUEL_SECRET }}
+        run: node fetch-prices.js
+
+      - name: Aggregate + inject
+        working-directory: fuel
+        run: |
+          node aggregate.js
+          node -e "const fs=require('fs'); const j=JSON.parse(fs.readFileSync('summary.json','utf8')); fs.writeFileSync('summary.min.json', JSON.stringify(j));"
+          node inject.js
+
+      - name: Commit updated dashboard (if changed)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- fuel-dashboard.html; then
+            echo "No changes to fuel-dashboard.html"
+            exit 0
+          fi
+          git add fuel-dashboard.html
+          git commit -m "chore(fuel): hourly refresh from FuelCheck"
+          git push

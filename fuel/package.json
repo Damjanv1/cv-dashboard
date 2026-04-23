@@ -1,0 +1,15 @@
+{
+  "name": "fuel-dashboard",
+  "version": "1.0.0",
+  "description": "NSW Fuel Insights dashboard - aggregates FuelCheck data into a static dashboard",
+  "private": true,
+  "scripts": {
+    "fetch": "node fetch-prices.js",
+    "aggregate": "node aggregate.js",
+    "inject": "node inject.js",
+    "build": "node fetch-prices.js && node aggregate.js && node inject.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
