@@ -3,906 +3,659 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Australian Federal Budget 2026–27</title>
+<title>Australian Federal Budget 2026–27 | Data</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --navy: #0a1628;
-    --navy2: #0d1f3c;
-    --blue: #1a3a6e;
-    --mid-blue: #1e4fa0;
-    --gold: #c9972b;
-    --gold-light: #f0b840;
-    --teal: #00a9a5;
-    --red: #c0392b;
-    --green: #27ae60;
-    --surface: #111d35;
-    --card: #162040;
-    --border: rgba(255,255,255,0.08);
-    --text: #e8edf5;
-    --muted: #7a92b8;
-    --accent: #4a9eff;
+    --red:     #E3120B;
+    --red2:    #b80f09;
+    --ink:     #121212;
+    --ink2:    #3a3a3a;
+    --muted:   #6b6b6b;
+    --rule:    #d0d0d0;
+    --bg:      #FAF9F7;
+    --card:    #ffffff;
+    --tag-bg:  #f0eeeb;
+    --accent:  #006BA6;
+    --green:   #00875A;
+    --amber:   #B86A00;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    font-family: 'Inter', sans-serif;
-    background: var(--navy);
-    color: var(--text);
-    line-height: 1.5;
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.55;
   }
 
-  /* ── HERO ── */
-  .hero {
-    background: linear-gradient(135deg, #060e1c 0%, #0d1f3c 40%, #0f2550 100%);
-    padding: 56px 40px 48px;
-    position: relative;
-    overflow: hidden;
-    border-bottom: 1px solid var(--border);
+  /* ── MASTHEAD ── */
+  .masthead {
+    background: var(--red);
+    padding: 0;
+    height: 5px;
   }
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -80px; right: -120px;
-    width: 520px; height: 520px;
-    background: radial-gradient(circle, rgba(74,158,255,0.12) 0%, transparent 70%);
-    pointer-events: none;
+  .masthead-bar {
+    border-bottom: 1px solid var(--rule);
+    padding: 10px 0 9px;
+    background: #fff;
   }
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: -60px; left: -80px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(201,151,43,0.08) 0%, transparent 70%);
-    pointer-events: none;
+  .masthead-bar .inner {
+    max-width: 960px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .hero-label {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(201,151,43,0.15); border: 1px solid rgba(201,151,43,0.3);
-    color: var(--gold-light); padding: 5px 14px; border-radius: 20px;
-    font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
-    margin-bottom: 20px;
+  .pub-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 800; color: var(--red);
+    letter-spacing: -0.5px;
   }
-  .hero-label .dot {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--gold-light);
-    animation: pulse 1.5s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .hero h1 {
-    font-size: clamp(28px, 4vw, 48px);
-    font-weight: 900; line-height: 1.1;
-    background: linear-gradient(135deg, #fff 0%, #b8d4ff 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    margin-bottom: 8px;
-  }
-  .hero-sub {
-    font-size: 16px; color: var(--muted); font-weight: 400; margin-bottom: 36px;
-  }
-  .hero-context {
-    background: rgba(201,151,43,0.08); border: 1px solid rgba(201,151,43,0.2);
-    border-left: 3px solid var(--gold); border-radius: 6px;
-    padding: 12px 16px; margin-bottom: 36px; font-size: 13px; color: #d4b570;
-    max-width: 760px;
-  }
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px; max-width: 1000px;
-  }
-  .kpi {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px 18px;
-    position: relative; overflow: hidden;
-    transition: transform 0.2s;
-  }
-  .kpi:hover { transform: translateY(-2px); }
-  .kpi.highlight { border-color: rgba(74,158,255,0.3); background: rgba(74,158,255,0.06); }
-  .kpi.warn { border-color: rgba(201,151,43,0.3); background: rgba(201,151,43,0.06); }
-  .kpi.good { border-color: rgba(39,174,96,0.3); background: rgba(39,174,96,0.06); }
-  .kpi.bad { border-color: rgba(192,57,43,0.25); background: rgba(192,57,43,0.05); }
-  .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-  .kpi-value { font-size: 26px; font-weight: 800; line-height: 1; }
-  .kpi-value.deficit { color: #e07070; }
-  .kpi-value.surplus { color: #5ec98e; }
-  .kpi-value.neutral { color: #fff; }
-  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .pub-date { font-size: 12px; color: var(--muted); letter-spacing: 0.3px; }
 
   /* ── LAYOUT ── */
-  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-  .section { padding: 48px 40px; }
-  .section-alt { background: rgba(255,255,255,0.015); }
-  .section-title {
-    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 6px;
+  .page { max-width: 960px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* ── HEADER ── */
+  .header { padding: 32px 0 24px; border-bottom: 3px solid var(--ink); }
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--red); margin-bottom: 10px;
   }
-  .section-heading {
-    font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; color: #fff;
-    margin-bottom: 6px;
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800; line-height: 1.1;
+    color: var(--ink); margin-bottom: 12px;
   }
-  .section-lead { font-size: 14px; color: var(--muted); margin-bottom: 32px; max-width: 680px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  @media (max-width: 900px) {
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    .section, .hero { padding: 36px 20px; }
+  .standfirst {
+    font-size: 17px; color: var(--ink2); line-height: 1.5;
+    font-style: italic; border-left: 3px solid var(--red);
+    padding-left: 14px; margin-bottom: 16px;
+    max-width: 680px;
+  }
+  .byline {
+    font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule);
+    padding-top: 10px; display: flex; gap: 20px; flex-wrap: wrap;
+  }
+  .byline span { display: flex; align-items: center; gap: 5px; }
+
+  /* ── WARNING BOX ── */
+  .warning-box {
+    background: #fff8f0; border: 1px solid #f0c080;
+    border-left: 4px solid var(--amber);
+    padding: 12px 16px; margin: 20px 0;
+    font-size: 13px; color: var(--ink2); line-height: 1.5;
+  }
+  .warning-box strong { color: var(--amber); }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--rule);
+    border-bottom: none; margin: 28px 0 0;
+    background: #fff;
+  }
+  .kpi-cell {
+    padding: 18px 20px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .kpi-cell:last-child { border-right: none; }
+  .kpi-cell.red-top { border-top: 3px solid var(--red); }
+  .kpi-cell.green-top { border-top: 3px solid var(--green); }
+  .kpi-cell.amber-top { border-top: 3px solid var(--amber); }
+  .kpi-cell.blue-top { border-top: 3px solid var(--accent); }
+  .kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+  .kpi-value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1; }
+  .kpi-value.deficit { color: var(--red); }
+  .kpi-value.surplus { color: var(--green); }
+  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 720px) {
+    .kpi-strip { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .kpi-strip { grid-template-columns: 1fr; }
+    .kpi-cell { border-right: none; }
   }
 
-  /* ── CHART CARDS ── */
+  /* ── SECTION ── */
+  .section { margin-top: 40px; }
+  .section > .section-label { margin-bottom: 6px; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--ink); border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px; margin-bottom: 4px;
+  }
+  .section-intro { font-size: 13px; color: var(--muted); margin-bottom: 20px; font-style: italic; }
+
+  /* ── CHART GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 720px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── CHART CARD ── */
   .chart-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 28px; overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    padding: 20px 20px 14px;
   }
   .chart-card.wide { grid-column: 1 / -1; }
-  .chart-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-  .chart-note { font-size: 11px; color: var(--muted); margin-bottom: 20px; }
-  .chart-wrap { position: relative; }
-
-  /* ── SPENDING ── */
-  .spending-grid { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: center; }
-  @media (max-width: 900px) { .spending-grid { grid-template-columns: 1fr; } }
-  .spend-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
+  .chart-card .ct { /* chart title */
+    font-weight: 700; font-size: 14px; color: var(--ink);
+    border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 4px;
   }
-  .spend-item:last-child { border-bottom: none; }
-  .spend-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-  .spend-name { font-size: 13px; color: var(--text); flex: 1; }
-  .spend-amt { font-size: 13px; font-weight: 700; color: #fff; }
-  .spend-pct { font-size: 11px; color: var(--muted); text-align: right; }
+  .chart-card .cn { /* chart note */
+    font-size: 11.5px; color: var(--muted); margin-bottom: 14px; line-height: 1.4;
+    font-style: italic;
+  }
+  .chart-wrap { position: relative; }
+  .source-line { font-size: 10.5px; color: var(--muted); margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--rule); }
+
+  /* ── ANNOTATION CALLOUT ── */
+  .callout {
+    background: #fff8f8; border: 1px solid #f0c0c0;
+    border-left: 3px solid var(--red);
+    padding: 8px 12px; font-size: 12px;
+    color: var(--ink2); margin: 10px 0;
+  }
+
+  /* ── SPENDING TABLE ── */
+  .spend-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spend-table th {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--muted);
+    border-bottom: 2px solid var(--ink); padding: 6px 8px; text-align: left;
+  }
+  .spend-table th:not(:first-child) { text-align: right; }
+  .spend-table td { padding: 8px 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  .spend-table td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  .spend-table tr:last-child td { border-bottom: none; font-weight: 700; }
+  .spend-table .bar-cell { width: 120px; }
+  .mini-bar { height: 6px; background: var(--rule); border-radius: 1px; margin-top: 2px; }
+  .mini-bar-fill { height: 100%; border-radius: 1px; }
+  .spend-table tr:hover td { background: #f9f7f5; }
 
   /* ── MEASURES ── */
-  .measures-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-  .measure-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
+  .measures-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; border: 1px solid var(--rule); }
+  .measure-cell {
+    padding: 18px 20px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    background: #fff; position: relative;
   }
-  .measure-card::before {
+  .measure-cell::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: var(--accent);
+    background: var(--red);
   }
-  .measure-card.gold::before { background: var(--gold); }
-  .measure-card.teal::before { background: var(--teal); }
-  .measure-card.red::before { background: #e05050; }
-  .measure-card.green::before { background: var(--green); }
-  .measure-icon { font-size: 24px; margin-bottom: 10px; }
-  .measure-val { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-  .measure-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .measure-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .measure-cell.green::before { background: var(--green); }
+  .measure-cell.amber::before { background: var(--amber); }
+  .measure-cell.blue::before { background: var(--accent); }
+  .measure-amt { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--ink); }
+  .measure-title { font-size: 13px; font-weight: 700; margin: 4px 0 6px; color: var(--ink); }
+  .measure-desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
 
   /* ── TIMELINE ── */
-  .timeline { display: flex; flex-direction: column; gap: 0; }
-  .tl-item { display: flex; gap: 16px; position: relative; padding-bottom: 20px; }
-  .tl-item:last-child { padding-bottom: 0; }
-  .tl-item:not(:last-child)::after {
-    content: ''; position: absolute; left: 19px; top: 40px; bottom: 0;
-    width: 2px; background: var(--border);
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-year-badge {
+    flex-shrink: 0; width: 52px; font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+    padding-top: 2px;
   }
-  .tl-dot {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; position: relative; z-index: 1;
-  }
-  .tl-dot.surplus { background: rgba(39,174,96,0.2); color: #5ec98e; border: 1.5px solid #27ae60; }
-  .tl-dot.deficit { background: rgba(192,57,43,0.2); color: #e07070; border: 1.5px solid #c0392b; }
-  .tl-dot.covid { background: rgba(201,151,43,0.2); color: var(--gold-light); border: 1.5px solid var(--gold); }
-  .tl-content { padding-top: 8px; flex: 1; }
-  .tl-year { font-size: 12px; font-weight: 700; color: var(--muted); }
-  .tl-headline { font-size: 14px; font-weight: 600; color: #fff; }
-  .tl-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tl-dot-col { flex-shrink: 0; width: 14px; display: flex; flex-direction: column; align-items: center; padding-top: 5px; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; flex-shrink: 0; }
+  .tl-dot.s { background: var(--green); border-color: var(--green); }
+  .tl-dot.d { background: var(--red); border-color: var(--red); }
+  .tl-body { flex: 1; }
+  .tl-headline { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .tl-detail { font-size: 12px; color: var(--muted); }
 
-  /* ── COMPARISON ── */
-  .compare-bar-wrap { margin-bottom: 10px; }
-  .compare-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
-  .compare-label span:first-child { color: var(--text); font-weight: 500; }
-  .compare-label span:last-child { color: var(--muted); }
-  .compare-track { height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
-  .compare-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  /* ── COMPARISON BARS ── */
+  .cmp { margin-bottom: 10px; }
+  .cmp-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+  .cmp-row .label { color: var(--ink2); }
+  .cmp-row .val { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cmp-track { height: 7px; background: var(--rule); }
+  .cmp-fill { height: 100%; }
+
+  /* ── STAT HIGHLIGHT ── */
+  .stat-strip {
+    display: flex; gap: 0; border: 1px solid var(--rule);
+    background: #fff; margin-top: 20px;
+  }
+  .stat-cell { flex: 1; padding: 20px 22px; border-right: 1px solid var(--rule); }
+  .stat-cell:last-child { border-right: none; }
+  .stat-val { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--ink); }
+  .stat-val.red { color: var(--red); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 600px) { .stat-strip { flex-direction: column; } .stat-cell { border-right: none; border-bottom: 1px solid var(--rule); } }
 
   /* ── FOOTER ── */
   .footer {
-    padding: 32px 40px; border-top: 1px solid var(--border);
-    font-size: 11px; color: var(--muted); line-height: 1.6;
+    margin-top: 48px; padding-top: 16px; border-top: 3px solid var(--ink);
+    font-size: 11.5px; color: var(--muted); line-height: 1.7;
   }
+  .footer strong { color: var(--ink2); }
   .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
 
   /* ── LEGEND ── */
-  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
-
-  .tag {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .tag.surplus { background: rgba(39,174,96,0.15); color: #5ec98e; }
-  .tag.deficit { background: rgba(192,57,43,0.15); color: #e07070; }
-  .tag.est { background: rgba(74,158,255,0.15); color: #7ab8ff; }
-
-  hr.section-div { border: none; border-top: 1px solid var(--border); margin: 0; }
-
-  .stat-row { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 24px; }
-  .stat-mini { text-align: center; }
-  .stat-mini .val { font-size: 20px; font-weight: 800; color: #fff; }
-  .stat-mini .lbl { font-size: 11px; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); }
+  .legend-swatch { width: 12px; height: 3px; border-radius: 1px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 </style>
 </head>
 <body>
 
-<!-- ── HERO ── -->
-<section class="hero">
-  <div style="max-width:1120px; margin: 0 auto;">
-    <div class="hero-label"><span class="dot"></span> Released 12 May 2026</div>
-    <h1>Australian Federal Budget<br>2026–27</h1>
-    <p class="hero-sub">Budget Paper No.1 · Treasurer Jim Chalmers · Albanese Labor Government</p>
+<div class="masthead"></div>
+<div class="masthead-bar">
+  <div class="inner">
+    <div class="pub-name">Budget Data</div>
+    <div class="pub-date">Australia · 12 May 2026</div>
+  </div>
+</div>
 
-    <div class="hero-context">
-      ⚠ <strong>Middle East conflict shock:</strong> A major conflict in the Middle East has disrupted ~20% of global seaborne oil &amp; gas supply, driving fuel prices up 40–70%, lifting inflation to 5% and slowing GDP growth from 2¼% to 1¾% in 2026–27.
-    </div>
+<div class="page">
 
-    <div class="kpi-grid">
-      <div class="kpi bad">
-        <div class="kpi-label">Underlying Deficit 2026–27</div>
-        <div class="kpi-value deficit">−$31.5B</div>
-        <div class="kpi-sub">−1.0% of GDP <span class="tag est">EST</span></div>
-      </div>
-      <div class="kpi bad">
-        <div class="kpi-label">Deficit 2025–26 (est.)</div>
-        <div class="kpi-value deficit">−$28.3B</div>
-        <div class="kpi-sub">−1.0% of GDP (was −$42.1B in Mar-25 budget)</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Total Receipts 2026–27</div>
-        <div class="kpi-value neutral">$798B</div>
-        <div class="kpi-sub">25.8% of GDP</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Total Payments 2026–27</div>
-        <div class="kpi-value neutral">$830B</div>
-        <div class="kpi-sub">26.8% of GDP</div>
-      </div>
-      <div class="kpi highlight">
-        <div class="kpi-label">Net Debt 2026–27</div>
-        <div class="kpi-value neutral">$617B</div>
-        <div class="kpi-sub">19.9% of GDP</div>
-      </div>
-      <div class="kpi warn">
-        <div class="kpi-label">Gross Debt Peak</div>
-        <div class="kpi-value neutral">35.8%</div>
-        <div class="kpi-sub">of GDP in 2028–29, then falls</div>
-      </div>
-      <div class="kpi warn">
-        <div class="kpi-label">Headline CPI (Jun-26)</div>
-        <div class="kpi-value neutral" style="color:#f0b840">5.0%</div>
-        <div class="kpi-sub">Falling to 2.5% by Jun-27</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Real GDP Growth 26–27</div>
-        <div class="kpi-value neutral" style="color:#7ab8ff">1¾%</div>
-        <div class="kpi-sub">Down from 2¼% in 2025–26</div>
-      </div>
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="section-label">Australian Federal Budget 2026–27</div>
+    <h1 class="headline">A budget in the shadow of war</h1>
+    <p class="standfirst">A Middle East conflict has upended Australia's fiscal calculus. Surpluses are gone, inflation is surging and growth is slowing — yet the books are far stronger than almost any other rich country's.</p>
+    <div class="byline">
+      <span>Source: Australian Government Budget Papers 2026–27 and 2025–26</span>
+      <span>Budget night: 12 May 2026</span>
+      <span>Treasurer: Jim Chalmers</span>
     </div>
   </div>
-</section>
 
-<hr class="section-div">
+  <div class="warning-box">
+    <strong>Middle East oil shock:</strong> A major conflict has disrupted roughly one-fifth of global seaborne oil and gas supply. Australian headline inflation surged to 4.6% in March 2026 (petrol +32.8% in a month) and is forecast to reach 5% by June 2026 before falling to 2½% by June 2027. GDP growth has been revised down from 2¼% to 1¾% for 2026–27.
+  </div>
 
-<!-- ── 10-YEAR FISCAL TRENDS ── -->
-<section class="section">
-  <div style="max-width:1120px; margin:0 auto;">
-    <div class="section-title">Fiscal History</div>
-    <div class="section-heading">10 Years of Budget Outcomes</div>
-    <p class="section-lead">Underlying cash balance, receipts and payments as a share of GDP — from the pre-COVID surpluses through the pandemic shock and the path back to balance.</p>
+  <!-- ── KPI STRIP ── -->
+  <div class="kpi-strip">
+    <div class="kpi-cell red-top">
+      <div class="kpi-label">Underlying deficit 2026–27</div>
+      <div class="kpi-value deficit">−$31.5bn</div>
+      <div class="kpi-sub">−1.0% of GDP · estimate</div>
+    </div>
+    <div class="kpi-cell amber-top">
+      <div class="kpi-label">Underlying deficit 2025–26</div>
+      <div class="kpi-value deficit">−$28.3bn</div>
+      <div class="kpi-sub">−1.0% of GDP · $8.5bn better than MYEFO</div>
+    </div>
+    <div class="kpi-cell blue-top">
+      <div class="kpi-label">Total receipts 2026–27</div>
+      <div class="kpi-value">$798bn</div>
+      <div class="kpi-sub">25.8% of GDP</div>
+    </div>
+    <div class="kpi-cell blue-top">
+      <div class="kpi-label">Total payments 2026–27</div>
+      <div class="kpi-value">$830bn</div>
+      <div class="kpi-sub">26.8% of GDP</div>
+    </div>
+    <div class="kpi-cell red-top">
+      <div class="kpi-label">Net debt 2026–27</div>
+      <div class="kpi-value">$617bn</div>
+      <div class="kpi-sub">19.9% of GDP · rising</div>
+    </div>
+    <div class="kpi-cell amber-top">
+      <div class="kpi-label">Gross debt peak</div>
+      <div class="kpi-value">35.8%</div>
+      <div class="kpi-sub">of GDP in 2028–29, then falls</div>
+    </div>
+    <div class="kpi-cell red-top">
+      <div class="kpi-label">CPI forecast (Jun-26)</div>
+      <div class="kpi-value" style="color:var(--amber)">5.0%</div>
+      <div class="kpi-sub">Falling to 2½% by Jun-27</div>
+    </div>
+    <div class="kpi-cell blue-top">
+      <div class="kpi-label">GDP growth 2026–27</div>
+      <div class="kpi-value">1¾%</div>
+      <div class="kpi-sub">Down from 2¼% in 2025–26</div>
+    </div>
+  </div>
 
-    <div class="chart-card" style="margin-bottom:24px;">
-      <div class="chart-title">Underlying Cash Balance (% of GDP)</div>
-      <div class="chart-note">Green = surplus · Red = deficit · Shaded = estimates. COVID years (2019–21) saw the largest peacetime deficits in Australian history.</div>
+  <!-- ── FISCAL TRENDS ── -->
+  <div class="section">
+    <div class="section-label">Fiscal trends</div>
+    <div class="section-title">Ten years of Australian public finances</div>
+    <p class="section-intro">From near-balance on the eve of covid to historic pandemic deficits, a brief surplus and now a return to red ink.</p>
+
+    <div class="chart-card" style="margin-bottom:20px;">
+      <div class="ct">Underlying cash balance, % of GDP</div>
+      <div class="cn">Positive = surplus; negative = deficit. Shaded bars = Treasury estimates. Grey zero line shown for reference.</div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#5ec98e"></div> Surplus</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#e07070"></div> Deficit</div>
-        <div class="legend-item"><div class="legend-dot" style="background:rgba(74,158,255,0.4)"></div> Estimates</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Surplus</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Deficit</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ccc; border: 1px solid #aaa"></div> Estimate</div>
       </div>
-      <div class="chart-wrap" style="height:260px;">
-        <canvas id="balanceChart"></canvas>
-      </div>
+      <div class="chart-wrap" style="height:240px;"><canvas id="balanceChart"></canvas></div>
+      <div class="source-line">Sources: BP1 Statement 11 (historical); BP1 Statement 3 (2025–26 and 2026–27 estimates), Australian Government Budget 2026–27</div>
     </div>
 
     <div class="grid-2">
       <div class="chart-card">
-        <div class="chart-title">Receipts vs Payments (% of GDP)</div>
-        <div class="chart-note">When the blue line exceeds orange, spending outpaces revenue. The gap drives debt accumulation.</div>
-        <div class="chart-wrap" style="height:220px;">
-          <canvas id="rpChart"></canvas>
+        <div class="ct">Receipts and payments, % of GDP</div>
+        <div class="cn">The gap between lines equals the deficit or surplus. Pandemic payments spiked to 31% of GDP in 2020–21.</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div> Receipts</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:var(--red)"></div> Payments</div>
         </div>
+        <div class="chart-wrap" style="height:210px;"><canvas id="rpChart"></canvas></div>
+        <div class="source-line">Source: BP1 Statement 11, Australian Government Budget 2026–27</div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Net Debt (% of GDP)</div>
-        <div class="chart-note">Net debt peaked at 28.3% during COVID, improved to 18.3% in 2023–24, then rising again with deficits.</div>
-        <div class="chart-wrap" style="height:220px;">
-          <canvas id="debtChart"></canvas>
-        </div>
+        <div class="ct">Net debt, % of GDP</div>
+        <div class="cn">Peaked at 28.3% during covid. Fell back to 18.3% in 2023–24 as surpluses repaid borrowings, but is rising again.</div>
+        <div class="chart-wrap" style="height:210px;"><canvas id="debtChart"></canvas></div>
+        <div class="source-line">Source: BP1 Statement 11, Australian Government Budget 2026–27</div>
       </div>
     </div>
   </div>
-</section>
 
-<hr class="section-div">
-
-<!-- ── SPENDING BREAKDOWN ── -->
-<section class="section section-alt">
-  <div style="max-width:1120px; margin:0 auto;">
-    <div class="section-title">Expenditure Analysis</div>
-    <div class="section-heading">Where the Money Goes — 2026–27</div>
-    <p class="section-lead">$833 billion in total government expenses. Social security dominates at 37%, followed by health at 16%.</p>
-
-    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 40px; align-items: start;">
-      <div>
-        <div class="chart-wrap" style="height:280px;">
-          <canvas id="spendingDonut"></canvas>
-        </div>
+  <!-- ── NOMINAL ── -->
+  <div class="section">
+    <div class="section-label">Scale of government</div>
+    <div class="section-title">Revenue, spending and the bottom line, A$bn</div>
+    <p class="section-intro">Raw dollar flows show the true size of the fiscal expansion during the pandemic, when payments jumped $130bn in a single year.</p>
+    <div class="chart-card">
+      <div class="ct">Receipts and payments, A$bn (bars); cash balance, A$bn (line)</div>
+      <div class="cn">Left axis: receipts and payments. Right axis: cash balance (gold line). Shaded = estimates.</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--accent); height:10px; width:12px;"></div> Receipts</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--red); height:10px; width:12px;"></div> Payments</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#B86A00; height:2px; width:16px; border-top: 2px solid #B86A00;"></div> Cash balance</div>
       </div>
-      <div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#4a9eff"></div>
-          <div class="spend-name">Social Security &amp; Welfare</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$308.7B</div>
-            <div class="spend-pct">37.1%</div>
-          </div>
-        </div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#00c2a8"></div>
-          <div class="spend-name">Health</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$136.9B</div>
-            <div class="spend-pct">16.4%</div>
-          </div>
-        </div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#c9972b"></div>
-          <div class="spend-name">Other Purposes (incl. debt mgmt, GST to states)</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$163.6B</div>
-            <div class="spend-pct">19.6%</div>
-          </div>
-        </div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#e05050"></div>
-          <div class="spend-name">Education</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$57.3B</div>
-            <div class="spend-pct">6.9%</div>
-          </div>
-        </div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#8b5cf6"></div>
-          <div class="spend-name">Defence</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$52.1B</div>
-            <div class="spend-pct">6.2%</div>
-          </div>
-        </div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#64748b"></div>
-          <div class="spend-name">General Public Services</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$32.5B</div>
-            <div class="spend-pct">3.9%</div>
-          </div>
-        </div>
-        <div class="spend-item">
-          <div class="spend-swatch" style="background:#334155"></div>
-          <div class="spend-name">All Other Functions</div>
-          <div style="text-align:right">
-            <div class="spend-amt">$81.9B</div>
-            <div class="spend-pct">9.8%</div>
-          </div>
-        </div>
+      <div class="chart-wrap" style="height:240px;"><canvas id="nominalChart"></canvas></div>
+      <div class="source-line">Source: BP1 Statement 11, Australian Government Budget 2026–27</div>
+    </div>
+  </div>
 
-        <div style="margin-top: 24px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 16px;">
-          <div style="font-size:12px; font-weight:600; color:var(--muted); margin-bottom:10px;">TOP PROGRAMS BY PAYMENT 2026–27</div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>Revenue assistance to States/Territories</span><span>$110.4B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:100%; background:var(--accent)"></div></div>
-          </div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>Support for Seniors (Age Pension)</span><span>$68.9B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:62%; background:#00c2a8"></div></div>
-          </div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>NDIS</span><span>$55.1B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:50%; background:#e05050"></div></div>
-          </div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>Aged Care Services</span><span>$43.8B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:40%; background:#c9972b"></div></div>
-          </div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>Medical Benefits (Medicare)</span><span>$37.5B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:34%; background:#8b5cf6"></div></div>
-          </div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>Hospital Assistance to States</span><span>$37.5B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:34%; background:#4a9eff"></div></div>
-          </div>
-          <div class="compare-bar-wrap">
-            <div class="compare-label"><span>Commonwealth Debt Management</span><span>$27.7B</span></div>
-            <div class="compare-track"><div class="compare-fill" style="width:25%; background:#64748b"></div></div>
-          </div>
-        </div>
+  <!-- ── GDP + SCATTER ── -->
+  <div class="section">
+    <div class="section-label">Economy</div>
+    <div class="section-title">Growth, inflation and the budget connection</div>
+    <p class="section-intro">Economic conditions drive budget outcomes — but the pandemic broke the usual correlation between growth and deficits.</p>
+    <div class="grid-2">
+      <div class="chart-card">
+        <div class="ct">Real GDP growth, % per year (calendar year)</div>
+        <div class="cn">Australia contracted just once in a decade (−2.3% in 2020). The Middle East shock slows 2026 to around 2%.</div>
+        <div class="chart-wrap" style="height:210px;"><canvas id="gdpChart"></canvas></div>
+        <div class="source-line">Source: ABS; Treasury forecasts 2026–27 Budget</div>
+      </div>
+      <div class="chart-card">
+        <div class="ct">Budget balance vs GDP growth, % of GDP</div>
+        <div class="cn">Each dot is a financial year. Red = deficit years, green = surplus. 2020–21 sits alone: growth recovered but deficit was extreme.</div>
+        <div class="chart-wrap" style="height:210px;"><canvas id="scatterChart"></canvas></div>
+        <div class="source-line">Source: BP1 Statement 11; ABS; Treasury, Australian Government Budget 2026–27</div>
       </div>
     </div>
   </div>
-</section>
 
-<hr class="section-div">
+  <!-- ── SPENDING ── -->
+  <div class="section">
+    <div class="section-label">Expenditure</div>
+    <div class="section-title">Where the $833bn goes in 2026–27</div>
+    <p class="section-intro">Social security and welfare dominates at 37 cents in every dollar spent. Health takes another 16 cents.</p>
 
-<!-- ── KEY MEASURES ── -->
-<section class="section">
-  <div style="max-width:1120px; margin:0 auto;">
-    <div class="section-title">Budget Measures</div>
-    <div class="section-heading">Key Announcements</div>
-    <p class="section-lead">The 2026–27 budget prioritises tax relief, fuel security, housing, hospitals and defence amid a global energy shock.</p>
+    <div class="grid-2" style="align-items:start;">
+      <div class="chart-card">
+        <div class="ct">Expenses by function, 2026–27</div>
+        <div class="cn">General government sector, accrual basis.</div>
+        <div class="chart-wrap" style="height:260px;"><canvas id="spendingDonut"></canvas></div>
+        <div class="source-line">Source: BP1 Statement 6, Australian Government Budget 2026–27</div>
+      </div>
+
+      <div class="chart-card">
+        <div class="ct">Top programmes by payment, 2026–27</div>
+        <div class="cn">The 20 largest programmes account for over two-thirds of total spending.</div>
+        <table class="spend-table">
+          <thead>
+            <tr>
+              <th>Programme</th>
+              <th>$bn</th>
+              <th class="bar-cell">Share of total</th>
+            </tr>
+          </thead>
+          <tbody id="spendTableBody"></tbody>
+        </table>
+        <div class="source-line">Source: BP1 Statement 6 Table 6.2.2, Australian Government Budget 2026–27</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KEY MEASURES ── -->
+  <div class="section">
+    <div class="section-label">Policy measures</div>
+    <div class="section-title">What the budget does</div>
+    <p class="section-intro">The 2026–27 budget cuts taxes, funds hospitals and defence, reserves gas for domestic use and attempts structural reform of the NDIS.</p>
 
     <div class="measures-grid">
-      <div class="measure-card gold">
-        <div class="measure-icon">💰</div>
-        <div class="measure-val">$250</div>
+      <div class="measure-cell">
+        <div class="measure-amt">$250</div>
         <div class="measure-title">Working Australians Tax Offset</div>
-        <div class="measure-desc">New annual tax offset for 13+ million workers from 1 July 2027. Additional tax cuts legislated for 2026 and 2027.</div>
+        <div class="measure-desc">Annual tax offset for 13m+ workers from July 2027. Additional tax cuts in 2026 and 2027 for all taxpayers.</div>
       </div>
-      <div class="measure-card">
-        <div class="measure-icon">🏥</div>
-        <div class="measure-val">$25B</div>
-        <div class="measure-title">Record Hospital Investment</div>
-        <div class="measure-desc">Additional investment in public hospitals under the National Health Reform Agreement, including $15.9B pre-provisioned.</div>
+      <div class="measure-cell amber">
+        <div class="measure-amt">$25bn</div>
+        <div class="measure-title">Hospital funding</div>
+        <div class="measure-desc">Additional investment in public hospitals under the National Health Reform Agreement, including $15.9bn pre-provisioned at MYEFO.</div>
       </div>
-      <div class="measure-card red">
-        <div class="measure-icon">🛡️</div>
-        <div class="measure-val">$53B</div>
-        <div class="measure-title">Record Defence Spending</div>
-        <div class="measure-desc">Record defence investment including the 2026 National Defence Strategy and Integrated Investment Program for military capability.</div>
+      <div class="measure-cell">
+        <div class="measure-amt">$53bn</div>
+        <div class="measure-title">Record defence</div>
+        <div class="measure-desc">2026 National Defence Strategy and Integrated Investment Program. Defence expenses rise 18.8% over four years to 2029–30.</div>
       </div>
-      <div class="measure-card teal">
-        <div class="measure-icon">⛽</div>
-        <div class="measure-val">20%</div>
-        <div class="measure-title">Gas Export Reservation</div>
-        <div class="measure-desc">20% of gas exports reserved for domestic use. Fuel excise temporarily reduced in response to Middle East oil shock driving 40–70% price surges.</div>
+      <div class="measure-cell amber">
+        <div class="measure-amt">20%</div>
+        <div class="measure-title">Gas export reservation</div>
+        <div class="measure-desc">One-fifth of gas exports reserved for domestic use. Fuel excise cut temporarily in response to fuel price surge from Middle East conflict.</div>
       </div>
-      <div class="measure-card green">
-        <div class="measure-icon">🏠</div>
-        <div class="measure-val">65,000</div>
-        <div class="measure-title">New Homes Infrastructure</div>
-        <div class="measure-desc">Funding for infrastructure to enable up to 65,000 new homes. 75,000 additional Australians supported into home ownership over the decade via tax reform.</div>
+      <div class="measure-cell green">
+        <div class="measure-amt">65,000</div>
+        <div class="measure-title">New homes</div>
+        <div class="measure-desc">Infrastructure funding to enable up to 65,000 new homes. Tax reform to help 75,000 more Australians become owner-occupiers over the decade.</div>
       </div>
-      <div class="measure-card">
-        <div class="measure-icon">🚂</div>
-        <div class="measure-val">$8.6B</div>
-        <div class="measure-title">Road &amp; Rail Projects</div>
-        <div class="measure-desc">Significant infrastructure investment, plus $8.6B in housing infrastructure funding to support new home building.</div>
+      <div class="measure-cell blue">
+        <div class="measure-amt">$184.9bn</div>
+        <div class="measure-title">NDIS structural reform</div>
+        <div class="measure-desc">Scheme growth reset to ~2% during transition, returning to 5% from 2030–31. Projected saving of $184.9bn over 12 years — the largest structural reform in this budget.</div>
       </div>
-      <div class="measure-card">
-        <div class="measure-icon">📋</div>
-        <div class="measure-val">$10.2B</div>
-        <div class="measure-title">Regulatory Burden Reduction</div>
-        <div class="measure-desc">Annual reduction in business regulatory burden. $3.5B in new business tax cuts. $540M/yr in compliance cost savings for businesses and individuals.</div>
+      <div class="measure-cell">
+        <div class="measure-amt">$10.2bn</div>
+        <div class="measure-title">Regulatory burden cut</div>
+        <div class="measure-desc">Annual reduction in business regulatory costs. $3.5bn in new business tax measures; $540m/yr in compliance savings.</div>
       </div>
-      <div class="measure-card gold">
-        <div class="measure-icon">♿</div>
-        <div class="measure-val">$184.9B</div>
-        <div class="measure-title">NDIS Reform Savings</div>
-        <div class="measure-desc">Major NDIS structural reform: scheme growth reset to ~2% during transition period (was running at higher rates), then returning to 5% from 2030–31. Saves $184.9B over 12 years.</div>
+      <div class="measure-cell amber">
+        <div class="measure-amt">$8.6bn</div>
+        <div class="measure-title">Roads and rail</div>
+        <div class="measure-desc">Significant road and rail infrastructure projects, plus housing infrastructure to support new construction activity.</div>
       </div>
     </div>
   </div>
-</section>
 
-<hr class="section-div">
+  <!-- ── FISCAL PATH ── -->
+  <div class="section">
+    <div class="section-label">Medium-term outlook</div>
+    <div class="section-title">The path back to surplus — and how it changed</div>
+    <p class="section-intro">Two consecutive surpluses in 2022–23 and 2023–24 were the first back-to-back surpluses in nearly two decades. The oil shock has set back the return to balance.</p>
 
-<!-- ── ECONOMIC CONTEXT ── -->
-<section class="section section-alt">
-  <div style="max-width:1120px; margin:0 auto;">
-    <div class="section-title">Economic Context</div>
-    <div class="section-heading">Economy vs Budget — 10-Year View</div>
-    <p class="section-lead">Tracking how economic conditions have shaped budget outcomes over a decade of boom, pandemic, recovery and now an energy shock.</p>
+    <div class="grid-2" style="align-items:start;">
+      <div>
+        <div class="chart-card" style="margin-bottom:20px;">
+          <div class="ct">Budget balance, projected path, % of GDP</div>
+          <div class="cn">Estimates from the 2026–27 Budget. Return to balance projected 2034–35; surplus by 2036–37.</div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="pathChart"></canvas></div>
+          <div class="source-line">Source: BP1 Statement 3, Australian Government Budget 2026–27</div>
+        </div>
 
-    <div class="grid-2" style="margin-bottom:32px;">
-      <div class="chart-card">
-        <div class="chart-title">Real GDP Growth (% per year)</div>
-        <div class="chart-note">Calendar year estimates. COVID hit −2.3% in 2020. Recovery was rapid. Middle East shock slows 2026–27 to 1¾%.</div>
-        <div class="chart-wrap" style="height:200px;">
-          <canvas id="gdpChart"></canvas>
+        <div class="chart-card">
+          <div class="ct">International comparison: gross debt, % of GDP, 2027</div>
+          <div class="cn">IMF projections. Australia's debt is less than half the advanced-economy average.</div>
+          <div id="intlBars" style="margin-top:4px;"></div>
+          <div class="source-line">Source: IMF; Treasury, Australian Government Budget 2026–27</div>
         </div>
       </div>
-      <div class="chart-card">
-        <div class="chart-title">Budget Balance vs Real GDP Growth</div>
-        <div class="chart-note">Correlation between economic performance and fiscal outcomes. COVID caused both deep deficits and negative GDP simultaneously.</div>
-        <div class="chart-wrap" style="height:200px;">
-          <canvas id="scatterChart"></canvas>
-        </div>
-      </div>
-    </div>
 
-    <div class="chart-card" style="margin-bottom: 24px;">
-      <div class="chart-title">Receipts, Payments &amp; Cash Balance — Nominal ($Billions)</div>
-      <div class="chart-note">Raw dollar figures showing the scale of government. Note the pandemic payments surge in 2020–21.</div>
-      <div class="chart-wrap" style="height:240px;">
-        <canvas id="nominalChart"></canvas>
+      <div class="chart-card">
+        <div class="ct">Fiscal milestones, 2022–37</div>
+        <div class="cn">Key turning points in Australia's fiscal position over a 15-year span.</div>
+        <div class="timeline" id="timeline"></div>
+        <div class="source-line">Source: BP1 Statements 3 and 11, Australian Government Budget 2026–27</div>
       </div>
     </div>
 
-    <div class="grid-3">
-      <div class="chart-card">
-        <div class="chart-title">Economic Forecasts 2026–27</div>
-        <div class="chart-note" style="margin-bottom:16px">Treasury central projections</div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>CPI Inflation</span><span style="color:#f0b840">5.0%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:100%; background:#c9972b"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>GDP Growth</span><span style="color:#7ab8ff">1.75%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:35%; background:#4a9eff"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>Unemployment</span><span>4.25–4.5%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:85%; background:#8b5cf6"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>Wages Growth (WPI)</span><span style="color:#5ec98e">above pre-pandemic</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:60%; background:#27ae60"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>Global Growth</span><span>3.0%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:60%; background:#64748b"></div></div>
-        </div>
+    <!-- STAT STRIP -->
+    <div class="stat-strip">
+      <div class="stat-cell">
+        <div class="stat-val green">$263.8bn</div>
+        <div class="stat-label">Cumulative budget improvement vs 2022 PEFO over 8 years to 2029–30</div>
       </div>
-
-      <div class="chart-card">
-        <div class="chart-title">International Debt Comparison (2027)</div>
-        <div class="chart-note" style="margin-bottom:16px">Gross debt as % GDP — IMF projections. Australia ~40pts below Euro area, 75+ pts below US.</div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>United States</span><span style="color:#e07070">~130%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:100%; background:#c0392b"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>United Kingdom</span><span>~103%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:79%; background:#e05050"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>Euro Area</span><span>~91%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:70%; background:#e07070"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span>Adv. Economy Avg</span><span>~102%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:78%; background:#c9972b"></div></div>
-        </div>
-        <div class="compare-bar-wrap">
-          <div class="compare-label"><span style="color:#5ec98e; font-weight:700">🇦🇺 Australia</span><span style="color:#5ec98e">~50.7%</span></div>
-          <div class="compare-track"><div class="compare-fill" style="width:39%; background:#27ae60"></div></div>
-        </div>
-        <div style="font-size:11px; color:var(--muted); margin-top:8px;">AAA rated by all 3 major agencies. 5th lowest G20 debt ratio.</div>
+      <div class="stat-cell">
+        <div class="stat-val">$177.9bn</div>
+        <div class="stat-label">Total savings and reprioritisations since 2022 PEFO ($63.8bn in this budget alone)</div>
       </div>
-
-      <div class="chart-card">
-        <div class="chart-title">Medium-Term Fiscal Outlook</div>
-        <div class="chart-note" style="margin-bottom:16px">Projected path to balance and beyond (as % GDP)</div>
-        <div class="timeline">
-          <div class="tl-item">
-            <div class="tl-dot surplus">+0.6</div>
-            <div class="tl-content">
-              <div class="tl-year">2023–24 (Actual)</div>
-              <div class="tl-headline">$15.8B Surplus</div>
-              <div class="tl-detail">2nd consecutive surplus — first back-to-back in 2 decades</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot deficit">−0.4</div>
-            <div class="tl-content">
-              <div class="tl-year">2024–25 (Actual)</div>
-              <div class="tl-headline">$10.0B Deficit</div>
-              <div class="tl-detail">Much smaller than earlier forecast of $27.6B</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot deficit">−1.0</div>
-            <div class="tl-content">
-              <div class="tl-year">2026–27 (Budget, Today)</div>
-              <div class="tl-headline">$31.5B Deficit</div>
-              <div class="tl-detail">Oil shock weighs on economy &amp; revenue; $44.9B better than MYEFO</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot deficit">−0.7</div>
-            <div class="tl-content">
-              <div class="tl-year">2029–30 (Projection)</div>
-              <div class="tl-headline">$25.3B Deficit</div>
-              <div class="tl-detail">Improving; half the MYEFO projection</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot surplus">0.0</div>
-            <div class="tl-content">
-              <div class="tl-year">2034–35 (Projection)</div>
-              <div class="tl-headline">Return to Balance</div>
-              <div class="tl-detail">Structural savings + tax reform driving improvement</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot surplus">+0.8</div>
-            <div class="tl-content">
-              <div class="tl-year">2036–37 (Projection)</div>
-              <div class="tl-headline">Surplus</div>
-              <div class="tl-detail">Gross debt falls to 27.2% of GDP</div>
-            </div>
-          </div>
-        </div>
+      <div class="stat-cell">
+        <div class="stat-val amber">$173bn</div>
+        <div class="stat-label">Lower gross debt in 2026–27 vs 2022 PEFO forecast; saves $70bn+ in interest costs</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val">76%</div>
+        <div class="stat-label">Share of tax receipt upgrades returned to budget repair since 2022 PEFO</div>
       </div>
     </div>
   </div>
-</section>
 
-<hr class="section-div">
-
-<!-- ── FISCAL IMPROVEMENT ── -->
-<section class="section">
-  <div style="max-width:1120px; margin:0 auto;">
-    <div class="section-title">Since the 2022 PEFO</div>
-    <div class="section-heading">Labor Government's Fiscal Track Record</div>
-    <p class="section-lead">Comparing outcomes against what was projected when Labor took office in May 2022.</p>
-
-    <div class="grid-3" style="margin-bottom:0;">
-      <div class="chart-card">
-        <div style="text-align:center; padding: 12px 0;">
-          <div style="font-size:48px; font-weight:900; color:#5ec98e;">$263.8B</div>
-          <div style="font-size:14px; font-weight:600; color:#fff; margin: 6px 0;">Budget Improvement</div>
-          <div style="font-size:12px; color:var(--muted)">Cumulative improvement over 8 years to 2029–30 vs 2022 PEFO projections</div>
-        </div>
-      </div>
-      <div class="chart-card">
-        <div style="text-align:center; padding: 12px 0;">
-          <div style="font-size:48px; font-weight:900; color:#f0b840;">$177.9B</div>
-          <div style="font-size:14px; font-weight:600; color:#fff; margin: 6px 0;">Savings &amp; Reprioritisations</div>
-          <div style="font-size:12px; color:var(--muted)">Total savings found since 2022 PEFO. This budget adds $63.8B of that total.</div>
-        </div>
-      </div>
-      <div class="chart-card">
-        <div style="text-align:center; padding: 12px 0;">
-          <div style="font-size:48px; font-weight:900; color:#4a9eff;">$173B</div>
-          <div style="font-size:14px; font-weight:600; color:#fff; margin: 6px 0;">Lower Gross Debt</div>
-          <div style="font-size:12px; color:var(--muted)">Gross debt in 2026–27 is $173B lower than forecast at PEFO. Saving $70B+ in interest costs.</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:24px; background:var(--card); border: 1px solid var(--border); border-radius:12px; padding: 24px;">
-      <div style="font-size:13px; font-weight:600; color:var(--muted); margin-bottom:16px; text-transform:uppercase; letter-spacing:1px;">Payments Growth Restraint</div>
-      <div style="display: flex; gap: 40px; flex-wrap: wrap;">
-        <div>
-          <div style="font-size:32px; font-weight:900; color:#fff;">1.1%</div>
-          <div style="font-size:12px; color:var(--muted)">Real avg payments growth<br>over 4 years to 2029–30</div>
-        </div>
-        <div>
-          <div style="font-size:32px; font-weight:900; color:#fff;">1.5%</div>
-          <div style="font-size:12px; color:var(--muted)">Real avg payments growth<br>over 8 years to 2029–30</div>
-        </div>
-        <div>
-          <div style="font-size:32px; font-weight:900; color:#e07070;">3.3%</div>
-          <div style="font-size:12px; color:var(--muted)">30-year historical<br>payments growth average</div>
-        </div>
-        <div>
-          <div style="font-size:32px; font-weight:900; color:#5ec98e;">76%</div>
-          <div style="font-size:12px; color:var(--muted)">Tax receipt upgrades<br>returned to budget repair</div>
-        </div>
-      </div>
-    </div>
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    <strong>Sources and notes:</strong> All data sourced from Australian Government Budget 2026–27 and 2025–26 Budget Paper No. 1, published 12 May 2026.
+    Historical figures from Statement 11: Historical Australian Government Data; fiscal aggregates from Statement 3: Fiscal Strategy and Outlook;
+    expenditure from Statement 6: Expenses and Net Capital Investment; economic forecasts from Statement 2: Economic Outlook.
+    All Commonwealth general government sector, underlying cash basis unless stated. GDP figures are nominal Australian dollars.
+    "Estimates" are Treasury projections, not actuals. Calendar year GDP growth uses ABS national accounts data and Treasury forecasts.
+    International debt comparisons use IMF General Government data (calendar years, all levels of government) and are not directly
+    comparable with Commonwealth-only figures reported elsewhere in this document.
+    <br><br>
+    <a href="https://budget.gov.au">budget.gov.au</a> ·
+    <a href="https://archive.budget.gov.au">archive.budget.gov.au</a> ·
+    Published at <a href="https://damjanv1.github.io/cv-dashboard/australian-budget-2026-27.html">damjanv1.github.io/cv-dashboard</a>
   </div>
-</section>
 
-<div class="footer">
-  <div style="max-width:1120px; margin:0 auto;">
-    <strong>Sources:</strong> Australian Government Budget 2026–27 — Budget Paper No. 1 (Statements 2, 3, 6, 11).
-    Australian Government Budget 2025–26 — Budget Paper No. 1 (Statement 3).
-    All budget figures are Commonwealth general government sector on an underlying cash basis unless stated. GDP figures are nominal.
-    Economic forecasts are financial year unless stated. "Estimates" (est.) are Treasury projections, not actuals.
-    Historical data sourced from Statement 11: Historical Australian Government Data.
-    Data as at Budget night, 12 May 2026.
-    Sources: <a href="https://budget.gov.au">budget.gov.au</a> · <a href="https://archive.budget.gov.au">archive.budget.gov.au</a>
-  </div>
-</div>
+</div><!-- /page -->
 
 <script>
-// ── SHARED CONFIG ──
-Chart.defaults.color = '#7a92b8';
-Chart.defaults.font.family = "'Inter', sans-serif";
+// ── CHART DEFAULTS ──
+Chart.defaults.color = '#6b6b6b';
+Chart.defaults.font.family = "'Source Sans 3', sans-serif";
 Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.display = false;
 
+const RED    = '#E3120B';
+const GREEN  = '#00875A';
+const ACCENT = '#006BA6';
+const AMBER  = '#B86A00';
+const RULE   = '#d0d0d0';
+const GRID   = 'rgba(0,0,0,0.06)';
 const LABELS_12 = ['15–16','16–17','17–18','18–19','19–20','20–21','21–22','22–23','23–24','24–25','25–26e','26–27e'];
-const EST_START = 10; // from index 10 onwards are estimates
 
 // ── BALANCE CHART ──
-const balanceData = [-2.4, -1.9, -0.5, 0.0, -4.3, -6.4, -1.4, 0.9, 0.6, -0.4, -1.0, -1.0];
-const balanceColors = balanceData.map(v => v >= 0 ? 'rgba(94,201,142,0.8)' : 'rgba(224,112,112,0.8)');
-const balanceBorder = balanceData.map(v => v >= 0 ? '#27ae60' : '#c0392b');
-
+const balanceData = [-2.4,-1.9,-0.5,0.0,-4.3,-6.4,-1.4,0.9,0.6,-0.4,-1.0,-1.0];
 new Chart(document.getElementById('balanceChart'), {
   type: 'bar',
   data: {
     labels: LABELS_12,
     datasets: [{
       data: balanceData,
-      backgroundColor: balanceData.map((v, i) => {
-        if (i >= EST_START) return v >= 0 ? 'rgba(94,201,142,0.35)' : 'rgba(224,112,112,0.35)';
-        return v >= 0 ? 'rgba(94,201,142,0.75)' : 'rgba(224,112,112,0.75)';
+      backgroundColor: balanceData.map((v,i) => {
+        const est = i >= 10;
+        if (v >= 0) return est ? 'rgba(0,135,90,0.35)' : 'rgba(0,135,90,0.75)';
+        return est ? 'rgba(227,18,11,0.25)' : 'rgba(227,18,11,0.72)';
       }),
-      borderColor: balanceBorder,
-      borderWidth: 1.5,
-      borderRadius: 4,
+      borderColor: balanceData.map(v => v >= 0 ? GREEN : RED),
+      borderWidth: 1,
+      borderRadius: 1,
     }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: {
-      callbacks: { label: ctx => ` ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(1)}% of GDP` }
-    }},
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.parsed.y >= 0 ? '+' : ''}${c.parsed.y.toFixed(1)}% of GDP` } }
+    },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#7a92b8' } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#7a92b8', callback: v => v + '%' },
+      x: { grid: { color: GRID }, ticks: { color: '#6b6b6b' } },
+      y: {
+        grid: { color: GRID },
+        ticks: { color: '#6b6b6b', callback: v => v + '%' },
         afterDataLimits: s => { s.max = Math.max(s.max, 1.5); s.min = Math.min(s.min, -7); }
       }
     }
   }
 });
 
-// ── RECEIPTS / PAYMENTS CHART ──
+// ── RECEIPTS / PAYMENTS ──
 new Chart(document.getElementById('rpChart'), {
   type: 'line',
   data: {
     labels: LABELS_12,
     datasets: [
       {
-        label: 'Receipts', data: [23.2,23.2,24.2,24.8,23.6,24.9,25.0,25.2,25.7,25.8,25.6,25.8],
-        borderColor: '#4a9eff', backgroundColor: 'rgba(74,158,255,0.08)', fill: false,
-        tension: 0.3, pointRadius: 4, pointBorderWidth: 2, pointBackgroundColor: '#0a1628',
-        borderDash: ctx => ctx.dataIndex >= EST_START ? [4,3] : []
+        label: 'Receipts',
+        data: [23.2,23.2,24.2,24.8,23.6,24.9,25.0,25.2,25.7,25.8,25.6,25.8],
+        borderColor: ACCENT, backgroundColor: 'rgba(0,107,166,0.07)',
+        tension: 0.25, pointRadius: 3.5, pointBackgroundColor: '#fff', pointBorderWidth: 1.5,
+        fill: false,
       },
       {
-        label: 'Payments', data: [25.4,24.9,24.5,24.5,27.6,31.3,26.4,24.3,25.1,26.2,26.6,26.8],
-        borderColor: '#e07070', backgroundColor: 'rgba(224,112,112,0.08)', fill: false,
-        tension: 0.3, pointRadius: 4, pointBorderWidth: 2, pointBackgroundColor: '#0a1628',
+        label: 'Payments',
+        data: [25.4,24.9,24.5,24.5,27.6,31.3,26.4,24.3,25.1,26.2,26.6,26.8],
+        borderColor: RED, backgroundColor: 'rgba(227,18,11,0.07)',
+        tension: 0.25, pointRadius: 3.5, pointBackgroundColor: '#fff', pointBorderWidth: 1.5,
+        fill: false,
       }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#7a92b8', boxWidth: 10 } }, tooltip: {
-      callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}% of GDP` }
-    }},
+    plugins: {
+      legend: { display: true, labels: { color: '#3a3a3a', boxWidth: 20, boxHeight: 2, padding: 12 } },
+      tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}% of GDP` } }
+    },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 22, max: 33, ticks: { callback: v => v + '%' } }
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, min: 21, max: 33, ticks: { callback: v => v + '%' } }
     }
   }
 });
 
-// ── NET DEBT CHART ──
+// ── NET DEBT ──
 new Chart(document.getElementById('debtChart'), {
   type: 'line',
   data: {
     labels: LABELS_12,
     datasets: [{
-      label: 'Net Debt', data: [18.2,18.3,18.5,19.1,24.7,28.3,22.1,19.1,18.3,19.2,18.8,19.9],
-      borderColor: '#f0b840', backgroundColor: 'rgba(240,184,64,0.08)', fill: true,
-      tension: 0.3, pointRadius: 4, pointBorderWidth: 2, pointBackgroundColor: '#0a1628',
+      data: [18.2,18.3,18.5,19.1,24.7,28.3,22.1,19.1,18.3,19.2,18.8,19.9],
+      borderColor: AMBER, backgroundColor: 'rgba(184,106,0,0.07)',
+      tension: 0.25, pointRadius: 3.5, pointBackgroundColor: '#fff', pointBorderWidth: 1.5,
+      fill: true,
     }]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: {
-      callbacks: { label: ctx => ` Net Debt: ${ctx.parsed.y.toFixed(1)}% of GDP` }
-    }},
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` Net debt: ${c.parsed.y.toFixed(1)}% of GDP` } } },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, min: 0, max: 32, ticks: { callback: v => v + '%' } }
-    }
-  }
-});
-
-// ── SPENDING DONUT ──
-new Chart(document.getElementById('spendingDonut'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Social Security & Welfare', 'Health', 'Other Purposes', 'Education', 'Defence', 'Gen. Public Services', 'All Other'],
-    datasets: [{
-      data: [308.7, 136.9, 163.6, 57.3, 52.1, 32.5, 81.9],
-      backgroundColor: ['#4a9eff','#00c2a8','#c9972b','#e05050','#8b5cf6','#64748b','#334155'],
-      borderColor: '#162040', borderWidth: 3,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    cutout: '62%',
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => ` $${ctx.parsed.toFixed(1)}B (${(ctx.parsed/833.3*100).toFixed(1)}%)`
-        }
-      }
-    }
-  }
-});
-
-// ── GDP CHART ──
-const gdpYears = ['2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026e','2027e'];
-const gdpData  = [2.9, 2.3, 2.8, 2.1, -2.3, 5.2, 3.9, 2.1, 1.5, 2.0, 2.0, 2.25];
-new Chart(document.getElementById('gdpChart'), {
-  type: 'bar',
-  data: {
-    labels: gdpYears,
-    datasets: [{
-      data: gdpData,
-      backgroundColor: gdpData.map((v,i) => {
-        if (i >= 10) return 'rgba(74,158,255,0.4)';
-        return v < 0 ? 'rgba(224,112,112,0.7)' : 'rgba(74,158,255,0.7)';
-      }),
-      borderColor: gdpData.map((v,i) => {
-        if (i >= 10) return '#2a7acc';
-        return v < 0 ? '#c0392b' : '#1a6acc';
-      }),
-      borderWidth: 1.5, borderRadius: 3,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' } }
-    }
-  }
-});
-
-// ── SCATTER: GDP vs Budget Balance ──
-const scatterPoints = [
-  {x:2.9,y:-2.4}, {x:2.3,y:-1.9}, {x:2.8,y:-0.5}, {x:2.1,y:0.0},
-  {x:-2.3,y:-4.3},{x:5.2,y:-6.4},{x:3.9,y:-1.4},{x:2.1,y:0.9},
-  {x:1.5,y:0.6}, {x:2.0,y:-0.4},{x:2.0,y:-1.0},{x:2.25,y:-1.0}
-];
-const scatterColors = scatterPoints.map((p,i) => i >= 10 ? 'rgba(74,158,255,0.5)' : (p.y >= 0 ? 'rgba(94,201,142,0.8)' : 'rgba(224,112,112,0.8)'));
-new Chart(document.getElementById('scatterChart'), {
-  type: 'scatter',
-  data: {
-    datasets: [{
-      label: 'Year',
-      data: scatterPoints,
-      backgroundColor: scatterColors,
-      borderColor: 'transparent',
-      pointRadius: 7,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => {
-            const labels12 = ['15–16','16–17','17–18','18–19','19–20','20–21','21–22','22–23','23–24','24–25','25–26e','26–27e'];
-            return ` ${labels12[ctx.dataIndex]}: GDP ${ctx.parsed.x}%, Budget ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y}%`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        title: { display: true, text: 'GDP Growth %', color: '#7a92b8' },
-        grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' }
-      },
-      y: {
-        title: { display: true, text: 'Budget Balance % GDP', color: '#7a92b8' },
-        grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => v + '%' }
-      }
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, min: 0, max: 32, ticks: { callback: v => v + '%' } }
     }
   }
 });
@@ -914,45 +667,256 @@ new Chart(document.getElementById('nominalChart'), {
     labels: LABELS_12,
     datasets: [
       {
-        label: 'Receipts ($B)',
+        label: 'Receipts ($bn)',
         data: [386.9,409.9,446.9,485.3,469.4,519.9,584.4,649.5,688.6,717.0,759.8,798.1],
-        backgroundColor: 'rgba(74,158,255,0.55)',
-        borderColor: '#4a9eff', borderWidth: 1, borderRadius: 2,
-        order: 2
+        backgroundColor: LABELS_12.map((_,i) => i>=10 ? 'rgba(0,107,166,0.35)' : 'rgba(0,107,166,0.65)'),
+        borderWidth: 0, borderRadius: 1, order: 2
       },
       {
-        label: 'Payments ($B)',
+        label: 'Payments ($bn)',
         data: [423.3,439.4,452.7,478.1,549.6,654.1,616.3,627.4,672.8,726.9,788.1,829.6],
-        backgroundColor: 'rgba(224,112,112,0.5)',
-        borderColor: '#e07070', borderWidth: 1, borderRadius: 2,
-        order: 2
+        backgroundColor: LABELS_12.map((_,i) => i>=10 ? 'rgba(227,18,11,0.25)' : 'rgba(227,18,11,0.55)'),
+        borderWidth: 0, borderRadius: 1, order: 2
       },
       {
-        label: 'Cash Balance ($B)',
+        label: 'Cash balance ($bn)',
         type: 'line',
         data: [-39.6,-33.2,-10.1,-0.7,-85.3,-134.2,-32.0,22.1,15.8,-10.0,-28.3,-31.5],
-        borderColor: '#f0b840', backgroundColor: 'transparent',
-        tension: 0.3, pointRadius: 4, pointBorderWidth: 2, pointBackgroundColor: '#0a1628',
+        borderColor: AMBER, backgroundColor: 'transparent',
+        tension: 0.25, pointRadius: 3.5, pointBackgroundColor: '#fff', pointBorderWidth: 1.5,
         yAxisID: 'y2', order: 1
       }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { labels: { color: '#7a92b8', boxWidth: 10 } } },
+    plugins: {
+      legend: { display: true, labels: { color: '#3a3a3a', boxWidth: 14, boxHeight: 10, padding: 12 } }
+    },
     scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: {
-        grid: { color: 'rgba(255,255,255,0.05)' },
-        position: 'left', ticks: { callback: v => '$' + v + 'B' }
-      },
-      y2: {
-        grid: { display: false },
-        position: 'right',
-        ticks: { color: '#f0b840', callback: v => (v >= 0 ? '+' : '') + '$' + v + 'B' }
-      }
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, ticks: { callback: v => '$' + v + 'bn' }, position: 'left' },
+      y2: { grid: { display: false }, ticks: { color: AMBER, callback: v => (v>=0?'+':'')+'$'+v+'bn' }, position: 'right' }
     }
   }
+});
+
+// ── GDP CHART ──
+const gdpYears = ['2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026e','2027e'];
+const gdpData  = [2.9,2.3,2.8,2.1,-2.3,5.2,3.9,2.1,1.5,2.0,2.0,2.25];
+new Chart(document.getElementById('gdpChart'), {
+  type: 'bar',
+  data: {
+    labels: gdpYears,
+    datasets: [{
+      data: gdpData,
+      backgroundColor: gdpData.map((v,i) => {
+        const est = i>=10;
+        if (v<0) return 'rgba(227,18,11,0.72)';
+        return est ? 'rgba(0,107,166,0.35)' : 'rgba(0,107,166,0.65)';
+      }),
+      borderColor: gdpData.map(v => v<0 ? RED : ACCENT),
+      borderWidth: 1, borderRadius: 1,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// ── SCATTER ──
+const scatterPts = [
+  {x:2.9,y:-2.4,label:'15–16'},
+  {x:2.3,y:-1.9,label:'16–17'},
+  {x:2.8,y:-0.5,label:'17–18'},
+  {x:2.1,y:0.0, label:'18–19'},
+  {x:-2.3,y:-4.3,label:'19–20'},
+  {x:5.2,y:-6.4,label:'20–21'},
+  {x:3.9,y:-1.4,label:'21–22'},
+  {x:2.1,y:0.9, label:'22–23'},
+  {x:1.5,y:0.6, label:'23–24'},
+  {x:2.0,y:-0.4,label:'24–25'},
+  {x:2.0,y:-1.0,label:'25–26e'},
+  {x:2.25,y:-1.0,label:'26–27e'},
+];
+new Chart(document.getElementById('scatterChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      data: scatterPts,
+      backgroundColor: scatterPts.map((p,i) => {
+        if (i>=10) return 'rgba(0,107,166,0.5)';
+        return p.y>=0 ? 'rgba(0,135,90,0.75)' : 'rgba(227,18,11,0.65)';
+      }),
+      pointRadius: 7, pointHoverRadius: 9,
+      borderColor: '#fff', borderWidth: 1,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: {
+        label: c => ` ${scatterPts[c.dataIndex].label}: GDP ${c.parsed.x}%, balance ${c.parsed.y>=0?'+':''}${c.parsed.y}%`
+      }}
+    },
+    scales: {
+      x: { title: { display: true, text: 'GDP growth %', color: '#6b6b6b', font: { size: 11 } }, grid: { color: GRID }, ticks: { callback: v => v+'%' } },
+      y: { title: { display: true, text: 'Budget balance % GDP', color: '#6b6b6b', font: { size: 11 } }, grid: { color: GRID }, ticks: { callback: v => v+'%' } }
+    }
+  }
+});
+
+// ── DONUT ──
+const spendCategories = [
+  { name: 'Social security & welfare', val: 308.7, color: ACCENT },
+  { name: 'Health',                    val: 136.9, color: '#0097A7' },
+  { name: 'Other purposes',            val: 163.6, color: AMBER },
+  { name: 'Education',                 val: 57.3,  color: RED },
+  { name: 'Defence',                   val: 52.1,  color: '#6D4C41' },
+  { name: 'General public services',   val: 32.5,  color: '#546E7A' },
+  { name: 'All other',                 val: 81.9,  color: '#B0BEC5' },
+];
+new Chart(document.getElementById('spendingDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: spendCategories.map(d => d.name),
+    datasets: [{
+      data: spendCategories.map(d => d.val),
+      backgroundColor: spendCategories.map(d => d.color),
+      borderColor: '#fff', borderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '58%',
+    plugins: {
+      legend: {
+        display: true, position: 'bottom',
+        labels: { color: '#3a3a3a', boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 11 } }
+      },
+      tooltip: { callbacks: { label: c => ` $${c.parsed.toFixed(1)}bn (${(c.parsed/833.3*100).toFixed(1)}%)` } }
+    }
+  }
+});
+
+// ── SPEND TABLE ──
+const topPrograms = [
+  ['Revenue assistance to States', 110.4],
+  ['Support for Seniors (Age Pension)', 68.9],
+  ['NDIS', 55.1],
+  ['Aged Care Services', 43.8],
+  ['Medical Benefits (Medicare)', 37.5],
+  ['Hospital assistance to States', 37.5],
+  ['Commonwealth Debt Management', 27.7],
+  ['Disability Support', 26.3],
+  ['Pharmaceutical Benefits Scheme', 23.4],
+  ['Non-govt school funding', 21.4],
+  ['JobSeeker', 18.5],
+  ['Family support', 18.5],
+  ['Child Care Subsidy', 17.1],
+  ['Carer support', 13.5],
+  ['Army capabilities', 13.1],
+  ['Govt school funding', 13.0],
+  ['Navy capabilities', 12.6],
+  ['Air Force capabilities', 11.1],
+  ['Fuel Tax Credits', 10.2],
+  ['Pub. Sector Superannuation', 10.7],
+];
+const max = topPrograms[0][1];
+const tbody = document.getElementById('spendTableBody');
+topPrograms.forEach(([name, val]) => {
+  const pct = (val / 829.6 * 100).toFixed(1);
+  const barW = (val / max * 100).toFixed(0);
+  tbody.innerHTML += `<tr>
+    <td>${name}</td>
+    <td>$${val}bn</td>
+    <td class="bar-cell">
+      <div style="font-size:10.5px;color:var(--muted)">${pct}%</div>
+      <div class="mini-bar"><div class="mini-bar-fill" style="width:${barW}%;background:${ACCENT}"></div></div>
+    </td>
+  </tr>`;
+});
+tbody.innerHTML += `<tr><td>Total payments</td><td>$829.6bn</td><td></td></tr>`;
+
+// ── PATH CHART ──
+const pathLabels = ['24–25','25–26e','26–27e','27–28e','28–29e','29–30e','34–35e','36–37e'];
+const pathData   = [-0.4, -1.0, -1.0, -1.0, -1.0, -0.7, 0.0, 0.8];
+new Chart(document.getElementById('pathChart'), {
+  type: 'line',
+  data: {
+    labels: pathLabels,
+    datasets: [{
+      data: pathData,
+      borderColor: ACCENT,
+      backgroundColor: ctx => {
+        const gradient = ctx.chart.ctx.createLinearGradient(0,0,0,200);
+        gradient.addColorStop(0,'rgba(0,107,166,0.15)');
+        gradient.addColorStop(1,'rgba(0,107,166,0)');
+        return gradient;
+      },
+      fill: true, tension: 0.3,
+      pointRadius: pathData.map(v => 4),
+      pointBackgroundColor: pathData.map(v => v >= 0 ? GREEN : RED),
+      pointBorderColor: '#fff', pointBorderWidth: 1.5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.parsed.y>=0?'+':''}${c.parsed.y.toFixed(1)}% of GDP` } } },
+    scales: {
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, ticks: { callback: v => (v>=0?'+':'')+v+'%' }, suggestedMin: -1.5, suggestedMax: 1.2 }
+    }
+  }
+});
+
+// ── INTERNATIONAL BARS ──
+const intlData = [
+  { name: '🇺🇸 United States', val: 130, color: RED },
+  { name: '🇬🇧 United Kingdom', val: 103, color: '#c0392b' },
+  { name: 'Advanced economy avg', val: 102, color: AMBER },
+  { name: '🇪🇺 Euro area', val: 91, color: '#d46b00' },
+  { name: '🇦🇺 Australia', val: 50.7, color: GREEN },
+];
+const intlMax = 130;
+const intlEl = document.getElementById('intlBars');
+intlData.forEach(d => {
+  intlEl.innerHTML += `<div class="cmp">
+    <div class="cmp-row">
+      <span class="label" style="${d.name.includes('Australia') ? 'font-weight:700;color:var(--green)' : ''}">${d.name}</span>
+      <span class="val">${d.val}%</span>
+    </div>
+    <div class="cmp-track"><div class="cmp-fill" style="width:${(d.val/intlMax*100).toFixed(0)}%;background:${d.color}"></div></div>
+  </div>`;
+});
+
+// ── TIMELINE ──
+const tlData = [
+  { year: '22–23', type: 's', headline: '$22.1bn surplus (+0.9% GDP)', detail: 'First surplus since 2007–08' },
+  { year: '23–24', type: 's', headline: '$15.8bn surplus (+0.6% GDP)', detail: 'First back-to-back surpluses in ~20 years' },
+  { year: '24–25', type: 'd', headline: '$10.0bn deficit (−0.4% GDP)', detail: 'Much smaller than the $27.6bn forecast in Mar-25 budget' },
+  { year: '25–26e', type: 'd', headline: '$28.3bn deficit (−1.0% GDP)', detail: '$8.5bn improvement since MYEFO; oil shock weighs' },
+  { year: '26–27e', type: 'd', headline: '$31.5bn deficit (−1.0% GDP)', detail: '$44.9bn better than MYEFO across forward estimates' },
+  { year: '29–30e', type: 'd', headline: '$25.3bn deficit (−0.7% GDP)', detail: 'Less than half the MYEFO projection' },
+  { year: '34–35e', type: 's', headline: 'Return to balance', detail: 'Structural savings + tax reform driving improvement' },
+  { year: '36–37e', type: 's', headline: '+0.8% of GDP surplus', detail: 'Gross debt falls to 27.2% of GDP' },
+];
+const tlEl = document.getElementById('timeline');
+tlData.forEach(d => {
+  tlEl.innerHTML += `<div class="tl-item">
+    <div class="tl-year-badge">${d.year}</div>
+    <div class="tl-dot-col"><div class="tl-dot ${d.type}"></div></div>
+    <div class="tl-body">
+      <div class="tl-headline">${d.headline}</div>
+      <div class="tl-detail">${d.detail}</div>
+    </div>
+  </div>`;
 });
 </script>
 </body>
