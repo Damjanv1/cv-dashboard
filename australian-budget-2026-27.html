@@ -432,6 +432,20 @@
         <div class="source-line">Source: BP1 Statement 6 Table 6.2.2, Australian Government Budget 2026–27</div>
       </div>
     </div>
+
+    <div class="chart-card" style="margin-top:20px;">
+      <div class="ct">Payments by function over time, $bn</div>
+      <div class="cn">Social security has grown from $154bn to $309bn since 2015–16. Health spending spiked during COVID then resumed trend. Faded bars = estimates.</div>
+      <div class="legend" style="margin-bottom:8px;">
+        <div class="legend-item"><div class="legend-swatch" style="background:#006BA6"></div> Social security &amp; welfare</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#0097A7"></div> Health</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#E3120B"></div> Education</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#6D4C41"></div> Defence</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#9E9E9E"></div> Other</div>
+      </div>
+      <div class="chart-wrap" style="height:260px;"><canvas id="expendTimeChart"></canvas></div>
+      <div class="source-line">Source: BP1 Statement 6 &amp; Statement 11, Australian Government Budget 2026–27. Category splits for 2015–16 to 2024–25 are from historical actuals; 2025–26 and 2026–27 are estimates.</div>
+    </div>
   </div>
 
   <!-- ── KEY MEASURES ── -->
@@ -851,6 +865,45 @@ new Chart(document.getElementById('spendingDonut'), {
         labels: { color: '#3a3a3a', boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 11 } }
       },
       tooltip: { callbacks: { label: c => ` $${c.parsed.toFixed(1)}bn (${(c.parsed/833.3*100).toFixed(1)}%)` } }
+    }
+  }
+});
+
+// ── EXPENDITURE OVER TIME ──
+const expendSocSec   = [154,158,168,176,223,225,215,228,252,272,298,308.7];
+const expendHealth   = [68,71,75,81,87,103,113,107,120,127,133,136.9];
+const expendEducation= [35,37,38,40,42,45,47,49,51,54,56,57.3];
+const expendDefence  = [30,32,33,35,36,38,39,40,43,47,49,52.1];
+const expendTotals   = [423.3,439.4,452.7,478.1,549.6,654.1,616.3,627.4,672.8,726.9,788.1,829.6];
+const expendOther    = expendTotals.map((t,i)=>+(t-expendSocSec[i]-expendHealth[i]-expendEducation[i]-expendDefence[i]).toFixed(1));
+const estFrom = 10;
+function expendAlpha(i,base,estBase){return i>=estFrom?estBase:base;}
+new Chart(document.getElementById('expendTimeChart'),{
+  type:'bar',
+  data:{
+    labels:LABELS_12,
+    datasets:[
+      {label:'Social security & welfare',data:expendSocSec,  backgroundColor:LABELS_12.map((_,i)=>`rgba(0,107,166,${expendAlpha(i,0.78,0.38)})`),stack:'s',borderWidth:0,borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0}},
+      {label:'Health',                   data:expendHealth,  backgroundColor:LABELS_12.map((_,i)=>`rgba(0,151,167,${expendAlpha(i,0.78,0.38)})`),stack:'s',borderWidth:0},
+      {label:'Education',                data:expendEducation,backgroundColor:LABELS_12.map((_,i)=>`rgba(227,18,11,${expendAlpha(i,0.72,0.32)})`),stack:'s',borderWidth:0},
+      {label:'Defence',                  data:expendDefence, backgroundColor:LABELS_12.map((_,i)=>`rgba(109,76,65,${expendAlpha(i,0.78,0.38)})`),stack:'s',borderWidth:0},
+      {label:'Other',                    data:expendOther,   backgroundColor:LABELS_12.map((_,i)=>`rgba(158,158,158,${expendAlpha(i,0.60,0.28)})`),stack:'s',borderWidth:0},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        callbacks:{
+          label:c=>` ${c.dataset.label}: $${c.parsed.y.toFixed(0)}bn`,
+          footer:items=>`Total: $${expendTotals[items[0].dataIndex].toFixed(1)}bn`
+        }
+      }
+    },
+    scales:{
+      x:{grid:{color:GRID},ticks:{color:'#6b6b6b'}},
+      y:{grid:{color:GRID},stacked:true,ticks:{color:'#6b6b6b',callback:v=>'$'+v+'bn'},min:0,max:900}
     }
   }
 });
