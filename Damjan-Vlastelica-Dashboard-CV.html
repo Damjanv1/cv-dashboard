@@ -281,7 +281,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
 [data-theme="dark"] .tool.hi-amber{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.3)}
 
 /* ═══════ DOMAIN TILES ═══════ */
-.domain-tile{text-align:center;padding:20px 14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);transition:all .2s}
+.domain-tile{text-align:center;padding:20px 14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);transition:all .2s;cursor:pointer}
 .domain-tile:hover{border-color:var(--border-strong);transform:translateY(-2px)}
 [data-theme="dark"] .domain-tile{background:var(--surface2);border-radius:8px;padding:14px 10px}
 [data-theme="dark"] .domain-tile:hover{transform:none}
@@ -290,6 +290,13 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
 .domain-name{font-family:var(--font-serif);font-size:13px;font-weight:700;color:var(--text);line-height:1.25}
 [data-theme="dark"] .domain-name{font-family:var(--font-sans);font-size:11px}
 .domain-sub{font-size:10.5px;color:var(--text2);margin-top:5px;font-style:italic}
+.domain-caret{font-size:9px;color:var(--text3);margin-top:8px;transition:transform .2s}
+.domain-tile.expanded .domain-caret{transform:rotate(180deg)}
+.domain-body{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:left}
+.domain-body.open{display:block}
+.domain-body p{font-size:11.5px;color:var(--text2);line-height:1.6;margin:0 0 8px}
+.domain-body p:last-child{margin-bottom:0}
+[data-theme="dark"] .domain-body p{font-size:10.5px}
 [data-theme="dark"] .domain-sub{font-size:10px;font-style:normal;margin-top:3px}
 
 /* ═══════ EDU TABLE ═══════ */
@@ -590,7 +597,6 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
   <div class="topbar">
     <div>
       <div class="topbar-title">Professional Dashboard · Damjan Vlastelica</div>
-      <div class="topbar-sub">The Quarterly · Issue I · April MMXXVI</div>
     </div>
     <div class="topbar-right">
       <span class="pulse"></span>
@@ -978,6 +984,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
             <span class="tool hi-blue">Looker</span>
             <span class="tool hi-blue">Power BI</span>
             <span class="tool hi-blue">Google Looker Studio</span>
+            <span class="tool hi-blue">Sigma</span>
             <span class="tool">Sisense</span>
             <span class="tool">Metabase</span>
             <span class="tool">Redash</span>
@@ -1006,6 +1013,8 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
             <span class="tool">RAG / Embeddings</span>
             <span class="tool">AI Strategy</span>
             <span class="tool">MCP / Tool Use</span>
+            <span class="tool">Claude Code</span>
+            <span class="tool">Claude Work</span>
           </div>
         </div>
       </div>
@@ -1013,25 +1022,45 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
       <div class="card">
         <div class="card-title">Domain Expertise</div>
         <div class="g-domains">
-          <div class="domain-tile">
+          <div class="domain-tile" onclick="domainToggle(this)">
             <div class="domain-icon">📊</div>
             <div class="domain-name">Analytics Leadership</div>
             <div class="domain-sub">Team management &amp; OKR delivery</div>
+            <div class="domain-caret">▾</div>
+            <div class="domain-body">
+              <p>Built and led analytics teams across The Iconic, Kindred Group and PRGX, spanning direct reports and offshore staff, with reporting tied directly to organisational OKRs. At The Iconic, this includes building semantic &amp; reporting layers over data engineering pipelines to democratise access to data across the business.</p>
+              <p>Comfortable owning delivery end-to-end: from defining team priorities and mentoring junior analysts through to presenting outcomes at executive and GMC level.</p>
+            </div>
           </div>
-          <div class="domain-tile">
+          <div class="domain-tile" onclick="domainToggle(this)">
             <div class="domain-icon">🤖</div>
             <div class="domain-name">Gen-AI Strategy</div>
             <div class="domain-sub">Adoption, guilds &amp; agentic tools</div>
+            <div class="domain-caret">▾</div>
+            <div class="domain-body">
+              <p>Leading Gen-AI adoption at The Iconic through an internal AI Guild, LLM-powered assistants and agentic tooling — including agentic solutions that automate Looker report &amp; analytics delivery. This builds on earlier work at Qantas Group as Senior Emerging Tech Specialist in the Office of the CTO, developing and delivering group-wide Emerging Tech &amp; AI strategy presented directly to the GMC.</p>
+              <p>Experience spans strategy, POC development, partner procurement and the cultural change needed to embed AI tooling into day-to-day ways of working.</p>
+            </div>
           </div>
-          <div class="domain-tile">
+          <div class="domain-tile" onclick="domainToggle(this)">
             <div class="domain-icon">🎯</div>
             <div class="domain-name">Data Governance</div>
             <div class="domain-sub">EU compliance &amp; policy frameworks</div>
+            <div class="domain-caret">▾</div>
+            <div class="domain-body">
+              <p>Led EU &amp; cross-jurisdictional data governance and compliance at Kindred Group, automating regulatory reporting for multiple regulatory bodies across trading, marketing, commercial, finance and risk. At ACMA, delivered the Australian media regulator's data governance processes and data project value/prioritisation framework.</p>
+              <p>Also delivered data literacy &amp; governance training programs at Mirvac to lift organisation-wide data maturity.</p>
+            </div>
           </div>
-          <div class="domain-tile">
+          <div class="domain-tile" onclick="domainToggle(this)">
             <div class="domain-icon">🔍</div>
             <div class="domain-name">Strategic Consulting</div>
             <div class="domain-sub">PwC &amp; Grosvenor-honed skills</div>
+            <div class="domain-caret">▾</div>
+            <div class="domain-body">
+              <p>Grounded in Big 4 &amp; boutique strategy consulting: financial transaction advisory and strategy consulting at PwC Australia, and strategic procurement &amp; economic modelling at Grosvenor Performance Group. Later applied at PRGX, pioneering the firm's first Advisory service line in the Australian market.</p>
+              <p>These foundations shape a structured, analysis-first approach to problem framing and stakeholder communication that carries through every subsequent role.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1463,6 +1492,12 @@ function show(id, el) {
 // ── Timeline toggle ──
 function tlToggle(el) {
   el.querySelector('.tl-body').classList.toggle('open');
+}
+
+// ── Domain tile toggle ──
+function domainToggle(el) {
+  el.classList.toggle('expanded');
+  el.querySelector('.domain-body').classList.toggle('open');
 }
 
 // ── Counter animation ──
