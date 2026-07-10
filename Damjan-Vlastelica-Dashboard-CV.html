@@ -237,6 +237,10 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
 [data-theme="dark"] .tl-company{font-size:11px}
 .tl-period{font-size:10px;color:var(--text3);white-space:nowrap;background:var(--surface2);padding:3px 8px;border-radius:var(--radius);flex-shrink:0;font-weight:600;border:1px solid var(--border);font-variant-numeric:tabular-nums}
 [data-theme="dark"] .tl-period{border:none;border-radius:4px;padding:2px 7px}
+.tl-hint{font-size:9px;color:var(--text3);font-weight:500;text-transform:none;font-style:italic;white-space:nowrap}
+[data-theme="dark"] .tl-hint{font-style:normal}
+.exp-summary{font-size:12.5px;color:var(--text2);line-height:1.65;max-width:900px;margin-bottom:26px}
+[data-theme="dark"] .exp-summary{font-size:11px}
 .tl-body{display:none;margin-top:12px;padding:14px 16px;background:var(--bg-alt);border-radius:var(--radius);border-left:3px solid var(--dot-c,var(--accent))}
 [data-theme="dark"] .tl-body{border-radius:7px;padding:11px;background:var(--surface2)}
 .tl-body.open{display:block}
@@ -744,11 +748,12 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
 
     <!-- ══════════ EXPERIENCE ══════════ -->
     <div class="section" id="section-experience">
+      <p class="exp-summary">19+ years leading data, analytics &amp; Gen-AI capability across airlines, gambling, property, government and e-commerce. Career spans building and running analytics teams end-to-end — from strategy and governance through to reporting, dashboards and, more recently, agentic AI tooling — grounded in a management consulting foundation (PwC, Grosvenor, PRGX) that shapes a structured, insight-led approach to every engagement.</p>
       <div class="g2">
 
         <!-- Left col: recent -->
         <div>
-          <div class="sec-title">Recent &amp; Senior Roles</div>
+          <div class="sec-title">Recent &amp; Senior Roles <span class="tl-hint">click to expand</span></div>
           <div class="timeline">
 
             <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--accent)">
@@ -857,7 +862,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);display
 
         <!-- Right col: earlier -->
         <div>
-          <div class="sec-title">Earlier Career</div>
+          <div class="sec-title">Earlier Career <span class="tl-hint">click to expand</span></div>
           <div class="timeline">
 
             <div class="tl-item" onclick="tlToggle(this)" style="--dot-c:var(--pink)">
