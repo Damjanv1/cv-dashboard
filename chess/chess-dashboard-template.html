@@ -127,6 +127,8 @@ a:hover{text-decoration:underline}
 .foot a{color:var(--text-subtle);text-decoration:underline}
 
 .badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em}
+.coffee-btn{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:8px 16px;background:#ffdd00;color:#1a1a1a;font-weight:700;font-size:12px;font-family:var(--sans);text-transform:none;letter-spacing:normal;border-radius:999px;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s}
+.coffee-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.2)}
 .badge.warn{border-color:var(--accent4);color:var(--accent4)}
 
 </style>
@@ -288,6 +290,7 @@ a:hover{text-decoration:underline}
 <div class="foot">
   <div><b>Methodology.</b> Data pulled from the Lichess public API (<code>/api/games/user/damjanv</code>) then aggregated locally. Ratings shown are post-game (pre-game + rating change). "Decisive win %" = wins ÷ (wins + losses), excluding draws. Material at end-of-game computed by simulating SAN moves with chess.js; values are standard (P=1, N=B=3, R=5, Q=9). ECO family derives from the opening's ECO-code letter.</div>
   <div style="margin-top:10px">Damjan Vlastelica · <a href="https://damjanv1.github.io/cv-dashboard/Damjan-Vlastelica-Dashboard-CV.html">CV dashboard</a> · <a href="https://damjanv1.github.io/projects/">all projects</a></div>
+  <a href="https://buymeacoffee.com/damjanv1" target="_blank" rel="noopener" class="coffee-btn">☕ Buy me a coffee</a>
 </div>
 
 </div><!-- /wrap -->
