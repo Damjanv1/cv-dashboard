@@ -136,8 +136,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono
 .footer{margin-top:36px;padding:18px 0;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);line-height:1.6}
 .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);color:var(--text-muted);margin-right:6px}
 .badge.live{border-color:var(--nsw-sky);color:var(--nsw-blue-2)}
-.coffee-btn{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:8px 16px;background:#ffdd00;color:#1a1a1a;font-weight:700;font-size:12px;font-family:var(--sans);text-transform:none;letter-spacing:normal;border-radius:999px;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s}
+.coffee-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.coffee-btn{display:inline-flex;align-items:center;gap:7px;margin-top:0;padding:8px 16px;background:#ffdd00;color:#1a1a1a;font-weight:700;font-size:12px;font-family:var(--sans);text-transform:none;letter-spacing:normal;border-radius:999px;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s}
 .coffee-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.2)}
+.coffee-qr{width:56px;height:56px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:4px}
 </style>
 </head>
 <body>
@@ -285,7 +287,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono
   <span class="badge">NSW only</span>
   <div style="margin-top:10px">Data: <a href="https://api.nsw.gov.au/Product/Index/22" target="_blank">NSW FuelCheck API</a>. Prices are self-reported by retailers and may lag by 30&ndash;60 minutes. Map tiles © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors. Geocoding via <a href="https://nominatim.openstreetmap.org/" target="_blank">Nominatim</a>. This dashboard is independent of and not endorsed by the NSW Government.</div>
   <div style="margin-top:8px">Damjan Vlastelica · <a href="https://damjanv1.github.io/cv-dashboard/Damjan-Vlastelica-Dashboard-CV.html">CV dashboard</a> · <a href="https://damjanv1.github.io/projects/">all projects</a></div>
-  <a href="https://buymeacoffee.com/damjanv1" target="_blank" rel="noopener" class="coffee-btn">☕ Buy me a coffee</a>
+  <div class="coffee-row">
+    <a href="https://buymeacoffee.com/damjanv1" target="_blank" rel="noopener" class="coffee-btn">☕ Buy me a coffee</a>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=112x112&data=https%3A%2F%2Fbuymeacoffee.com%2Fdamjanv1" alt="Scan to buy me a coffee" class="coffee-qr" loading="lazy" width="56" height="56">
+  </div>
 </div>
 
 </div><!-- /wrap -->
