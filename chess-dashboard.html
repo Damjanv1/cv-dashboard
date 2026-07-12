@@ -143,7 +143,7 @@ a:hover{text-decoration:underline}
   <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><span id="t-icon">◐</span><span id="t-label">Dark</span></button>
   <div class="mast-kicker">Chess Analytics · Lichess</div>
   <h1 class="mast-title">Chess performance dashboard</h1>
-  <p class="mast-sub">A data-led look at how Damjanv has been playing on Lichess since August 2023 &mdash; the ratings arc, the opening repertoire, and how my games evolve.</p>
+  <p class="mast-sub" id="mast-sub">A data-led look at how Damjanv has been playing on Lichess &mdash; the ratings arc, the opening repertoire, and how my games evolve.</p>
   <div class="mast-filter" id="filter-row" role="tablist" aria-label="Time control filter"></div>
   <div class="mast-byline">
     <span>Damjan Vlastelica</span>
@@ -162,8 +162,8 @@ a:hover{text-decoration:underline}
 <!-- ============================================ -->
 <div class="sec-mast">
   <div class="kick">§ 1 · The overall record</div>
-  <h2>Halfway there, to 50%</h2>
-  <p class="sub">At nearly 1,500 decided games, the ledger sits just below an even split — a handful more losses than wins, and draws are a rarity.</p>
+  <h2 id="sec1-h2">Halfway there, to 50%</h2>
+  <p class="sub" id="sec1-sub">At nearly 1,500 decided games, the ledger sits just below an even split — a handful more losses than wins, and draws are a rarity.</p>
 </div>
 <div class="grid grid-3">
   <div class="card"><div class="card-h">Games won / lost / drew</div><div class="card-sh">All games · all time controls</div><div class="chart-wrap chart-h220"><canvas id="c-wld"></canvas></div></div>
@@ -195,13 +195,13 @@ a:hover{text-decoration:underline}
 <!-- ============================================ -->
 <div class="sec-mast">
   <div class="kick">§ 3 · How the games end</div>
-  <h2>Wins come by resignation, losses by checkmate</h2>
-  <p class="sub">A clear asymmetry: opponents resign to me, but when I lose, it's more often the mate on the board than a forced surrender.</p>
+  <h2 id="sec3-h2">Wins come by resignation, losses by checkmate</h2>
+  <p class="sub" id="sec3-sub">A clear asymmetry: opponents resign to me, but when I lose, it's more often the mate on the board than a forced surrender.</p>
 </div>
 <div class="grid grid-3">
   <div class="card"><div class="card-h">My wins end in…</div><div class="card-sh">Termination method across all wins</div><div class="chart-wrap chart-h260"><canvas id="c-wend"></canvas></div></div>
   <div class="card"><div class="card-h">My losses end in…</div><div class="card-sh">Termination method across all losses</div><div class="chart-wrap chart-h260"><canvas id="c-lend"></canvas></div></div>
-  <div class="card"><div class="card-h">Draws</div><div class="card-sh">Only 45 in 1,528 games — a rare event</div><div class="chart-wrap chart-h260"><canvas id="c-dend"></canvas></div></div>
+  <div class="card"><div class="card-h">Draws</div><div class="card-sh" id="draws-sh">Only 45 in 1,528 games — a rare event</div><div class="chart-wrap chart-h260"><canvas id="c-dend"></canvas></div></div>
 </div>
 
 <!-- Mating piece -->
@@ -216,8 +216,8 @@ a:hover{text-decoration:underline}
 <!-- ============================================ -->
 <div class="sec-mast">
   <div class="kick">§ 4 · Openings</div>
-  <h2>The Caro-Kann shadow</h2>
-  <p class="sub">Of the 1,527 games with an identified opening, the top 15 carry most of the volume — and the Caro-Kann Defence is the one I face most often by a wide margin.</p>
+  <h2 id="sec4-h2">The Caro-Kann shadow</h2>
+  <p class="sub" id="sec4-sub">Of the 1,527 games with an identified opening, the top 15 carry most of the volume — and the Caro-Kann Defence is the one I face most often by a wide margin.</p>
 </div>
 <div class="card">
   <div class="card-h">Top openings — frequency and result split</div>
@@ -234,8 +234,8 @@ a:hover{text-decoration:underline}
 <!-- ============================================ -->
 <div class="sec-mast">
   <div class="kick">§ 5 · Game length</div>
-  <h2>Short wins, short losses, long draws</h2>
-  <p class="sub">Wins and losses average around 30 moves. Draws take nearly twice as long — the board usually simplifies before anyone will concede.</p>
+  <h2 id="sec5-h2">Short wins, short losses, long draws</h2>
+  <p class="sub" id="sec5-sub">Wins and losses average around 30 moves. Draws take nearly twice as long — the board usually simplifies before anyone will concede.</p>
 </div>
 <div class="grid grid-2">
   <div class="card"><div class="card-h">Game length by result</div><div class="card-sh">Distribution of full moves · 5-move buckets</div><div class="chart-wrap chart-h300"><canvas id="c-movehist"></canvas></div></div>
@@ -369,6 +369,12 @@ function palette(){
 // ==== HELPERS ====
 const fmt = (n, d=0) => n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct = (n, d=1) => (n * 100).toFixed(d) + '%';
+// Lowercase phrasing for use mid-sentence in narrative text (distinct from renderEndings' title-case chart labels)
+const ENDING_PHRASE = { mate: 'checkmate', resign: 'resignation', outoftime: 'timeout', timeout: 'timeout', draw: 'agreement', stalemate: 'stalemate', cheat: 'cheating', noStart: 'no start', unknownFinish: 'unknown finish', variantEnd: 'variant end' };
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+function monthYear(iso){
+  return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
 const _charts = [];
 function mkChart(id, cfg){
   const el = document.getElementById(id);
@@ -402,6 +408,11 @@ function renderAll(){
   safe('Color', renderColor, p);
   safe('Speed', renderSpeed, p);
   safe('Callouts', renderCallouts, p);
+  safe('MastSub', renderMastSub, p);
+  safe('RecordNarrative', renderRecordNarrative, p);
+  safe('EndingsNarrative', renderEndingsNarrative, p);
+  safe('OpeningsNarrative', renderOpeningsNarrative, p);
+  safe('MovesNarrative', renderMovesNarrative, p);
   safe('Rating', renderRating, p);
   safe('Rolling', renderRolling, p);
   safe('Favour', renderFavour, p);
@@ -493,10 +504,97 @@ function renderCallouts(p){
     `Opponents checkmate me <b>${oppMates}</b> times vs <b>${myMates}</b> the other way — the Queen accounts for <b>${oppQ}</b> (${(oppQ/oppMates*100).toFixed(0)}%) of mates against me vs <b>${myQ}</b> (${myQ? (myQ/myMates*100).toFixed(0) : 0}%) of mates I deliver. The delta says: queen safety and king safety in the late middlegame are where the most points are leaking.`;
 }
 
+// ==== NARRATIVE HEADLINES ====
+// Section titles/subheads used to be handwritten against a one-time snapshot of the
+// data, so they drifted out of sync every week as new games got pulled in. These are
+// now computed from SUMMARY on every render, same as the callouts above.
+function setText(id, text){ const el = document.getElementById(id); if (el) el.textContent = text; }
+
+function renderMastSub(){
+  const first = DATA.all && DATA.all.meta && DATA.all.meta.firstGame;
+  const since = first ? ` since ${monthYear(first)}` : '';
+  setText('mast-sub', `A data-led look at how Damjanv has been playing on Lichess${since} — the ratings arc, the opening repertoire, and how my games evolve.`);
+}
+
+function renderRecordNarrative(){
+  const k = SUMMARY.kpi;
+  if (!k || !k.total) return;
+  const diff = k.wins - k.losses;
+  const drawPct = k.draws / k.total * 100;
+  const headline = Math.abs(k.winPct - 50) <= 3
+    ? `Right around the 50% mark, at ${k.winPct.toFixed(0)}%`
+    : (k.winPct > 50 ? `Comfortably ahead, at ${k.winPct.toFixed(0)}%` : `Still building toward 50%, at ${k.winPct.toFixed(0)}%`);
+  const margin = diff === 0 ? 'a dead-even split between wins and losses' : `${fmt(Math.abs(diff))} more ${diff > 0 ? 'wins than losses' : 'losses than wins'}`;
+  const drawWord = drawPct < 5 ? 'a rarity' : (drawPct < 12 ? 'uncommon' : 'a regular occurrence');
+  setText('sec1-h2', headline);
+  setText('sec1-sub', `At ${fmt(k.total)} decided games, the ledger sits at ${fmt(k.wins)}-${fmt(k.losses)}-${fmt(k.draws)} — ${margin}, and draws are ${drawWord}.`);
+}
+
+function renderEndingsNarrative(){
+  const e = SUMMARY.endings;
+  if (!e) return;
+  const top = (obj) => {
+    const entries = Object.entries(obj);
+    if (!entries.length) return null;
+    entries.sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((a, [, v]) => a + v, 0);
+    return { key: entries[0][0], count: entries[0][1], total };
+  };
+  const wTop = top(e.wins), lTop = top(e.losses), dTotal = Object.values(e.draws || {}).reduce((a, b) => a + b, 0);
+  const grandTotal = (wTop ? wTop.total : 0) + (lTop ? lTop.total : 0) + dTotal;
+  if (wTop && lTop) {
+    const headline = wTop.key === lTop.key
+      ? `Wins and losses both come down to ${ENDING_PHRASE[wTop.key] || wTop.key}`
+      : `Wins come by ${ENDING_PHRASE[wTop.key] || wTop.key}, losses by ${ENDING_PHRASE[lTop.key] || lTop.key}`;
+    const sub = wTop.key === lTop.key
+      ? `No real asymmetry here — most wins and most losses end the same way, by ${ENDING_PHRASE[wTop.key] || wTop.key}.`
+      : `A clear asymmetry: wins mostly end by ${ENDING_PHRASE[wTop.key] || wTop.key}, while losses mostly end by ${ENDING_PHRASE[lTop.key] || lTop.key}.`;
+    setText('sec3-h2', headline);
+    setText('sec3-sub', sub);
+  }
+  if (grandTotal) {
+    const drawPct = dTotal / grandTotal * 100;
+    const rarity = drawPct < 5 ? 'a rare event' : (drawPct < 12 ? 'uncommon' : `${drawPct.toFixed(0)}% of the ledger`);
+    setText('draws-sh', `${dTotal === 1 ? 'Only 1' : (drawPct < 5 ? `Only ${fmt(dTotal)}` : fmt(dTotal))} in ${fmt(grandTotal)} games — ${rarity}`);
+  }
+}
+
+function renderOpeningsNarrative(){
+  const ops = SUMMARY.openings;
+  if (!ops || !ops.length) return;
+  const withOpening = ops.reduce((a, o) => a + o.n, 0);
+  const top = ops[0], second = ops[1];
+  const shortName = (name) => name.split(':')[0].trim();
+  const margin = second ? top.n / second.n : Infinity;
+  const headline = margin >= 1.5 ? `The ${shortName(top.name)} shadow` : `Led by the ${shortName(top.name)}`;
+  const marginPhrase = !second ? '' : (margin >= 1.5 ? ' by a wide margin' : `, just ahead of the ${shortName(second.name)}`);
+  setText('sec4-h2', headline);
+  setText('sec4-sub', `Of the ${fmt(withOpening)} games with an identified opening, the top 15 carry most of the volume — and the ${shortName(top.name)} is the one I face most often${marginPhrase}.`);
+}
+
+function renderMovesNarrative(){
+  const s = SUMMARY.moveStats;
+  if (!s || !s.win || !s.loss || !s.draw) return;
+  const decisiveN = s.win.n + s.loss.n;
+  if (!decisiveN || !s.draw.n) return;
+  const decisiveAvg = (s.win.n * s.win.avg + s.loss.n * s.loss.avg) / decisiveN;
+  const ratio = decisiveAvg ? s.draw.avg / decisiveAvg : 1;
+  let headline, tail;
+  if (ratio >= 1.25) { headline = 'Short wins, short losses, long draws'; tail = `Draws take ${ratio.toFixed(1)}× as long — the board usually simplifies before anyone will concede.`; }
+  else if (ratio <= 0.8) { headline = 'Draws wrap up fast, decisive games run long'; tail = `Draws take only ${ratio.toFixed(1)}× as long as decisive games — most get agreed early rather than played out.`; }
+  else { headline = 'Game length barely depends on the result'; tail = `Draws run about as long as decisive games (${ratio.toFixed(1)}× the length) — length alone doesn't predict the outcome.`; }
+  setText('sec5-h2', headline);
+  setText('sec5-sub', `Wins and losses average around ${Math.round(decisiveAvg)} moves. ${tail}`);
+}
+
 // ==== RATING ====
 function renderRating(p){
-  // Use post-game rating (pre-game + ratingDiff). Prefer SUMMARY.ratingAfter if present, else fall back to raw pre-game rating.
-  const rawPts = (SUMMARY.ratingAfter && SUMMARY.ratingAfter.rapid && SUMMARY.ratingAfter.rapid.length) ? SUMMARY.ratingAfter.rapid : SUMMARY.ratingOverTime.rapid;
+  // This chart is always "every rapid game" regardless of the Rapid/Blitz/All filter tabs
+  // (see the fixed card title below), so it must read from the unfiltered DATA.all — not
+  // SUMMARY — otherwise it breaks when the Blitz tab is active (DATA.blitz has no rapid games).
+  const src = DATA.all;
+  // Use post-game rating (pre-game + ratingDiff). Prefer ratingAfter if present, else fall back to raw pre-game rating.
+  const rawPts = (src.ratingAfter && src.ratingAfter.rapid && src.ratingAfter.rapid.length) ? src.ratingAfter.rapid : src.ratingOverTime.rapid;
   // Downsample to ONE point per calendar day but keep the HIGHEST rating of that day,
   // so the line's peak matches the KPI "Rapid peak" and the Peak annotation lands on a visible point.
   const byDay = new Map();
