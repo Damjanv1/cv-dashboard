@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lichess Performance Lookup — analyze any player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  (function(){try{var t=localStorage.getItem('cd-theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<style>
+:root{
+  --bg:#fbfaf6;--surface:#ffffff;--surface2:#f5f3ec;--border:#e5e1d5;--border-strong:#c9c4b6;
+  --text:#1a1a1a;--text-muted:#5a5750;--text-subtle:#8a8680;
+  --accent:#1a3a5f;--accent2:#2a4e7a;--accent3:#8b2e3f;--accent4:#a67c2a;--accent5:#3f6b4e;
+  --win:#3f6b4e;--loss:#8b2e3f;--draw:#8a8680;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg:0 4px 16px rgba(26,58,95,0.08);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Inter','Helvetica Neue',sans-serif;
+  --mono:'JetBrains Mono',Consolas,monospace;
+}
+[data-theme="dark"]{
+  --bg:#0b1220;--surface:#121a2c;--surface2:#1a2340;--border:#22304f;--border-strong:#2f3e63;
+  --text:#e7ecf5;--text-muted:#a6b0c4;--text-subtle:#6b7895;
+  --accent:#60a5fa;--accent2:#3b82f6;--accent3:#f472b6;--accent4:#f59e0b;--accent5:#34d399;
+  --win:#34d399;--loss:#f472b6;--draw:#94a3b8;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.3);
+  --shadow-lg:0 4px 18px rgba(0,0,0,0.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:0}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.wrap{max-width:1280px;margin:0 auto;padding:36px 32px 80px}
+
+/* Masthead */
+.masthead{border-top:6px solid var(--text);border-bottom:1px solid var(--border);padding:22px 0 24px;margin-bottom:28px;position:relative}
+.mast-kicker{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.14em;font-size:11px;color:var(--text-muted);margin-bottom:10px}
+.mast-title{font-family:var(--serif);font-weight:900;font-size:54px;line-height:1.02;letter-spacing:-1.2px;margin-bottom:12px}
+.mast-title em{font-style:italic;color:var(--accent3)}
+.mast-sub{font-family:var(--serif);font-style:italic;font-weight:400;font-size:19px;color:var(--text-muted);margin-bottom:14px;max-width:780px}
+.mast-byline{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--text-subtle);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;flex-wrap:wrap}
+.mast-byline .sep{color:var(--border-strong)}
+.mast-filter{display:inline-flex;gap:4px;margin:14px 0 6px;padding:4px;background:var(--surface2);border:1px solid var(--border);border-radius:999px}
+.mast-filter button{appearance:none;border:0;background:transparent;color:var(--text-muted);padding:7px 16px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;font-size:11px;font-weight:600;cursor:pointer;border-radius:999px;transition:background .15s,color .15s}
+.mast-filter button:hover{color:var(--text)}
+.mast-filter button.active{background:var(--accent);color:#fff}
+.mast-filter .count{opacity:0.6;margin-left:6px;font-size:10px;letter-spacing:0.05em}
+.mast-filter button.active .count{opacity:0.85}
+
+.theme-toggle{position:absolute;top:22px;right:0;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:999px;cursor:pointer;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;display:flex;gap:8px;align-items:center;transition:all .2s}
+.theme-toggle:hover{border-color:var(--text);background:var(--surface2)}
+
+/* Lookup form */
+.lookup-form{display:flex;gap:10px;margin:18px 0 10px;max-width:560px;flex-wrap:wrap}
+.lookup-form input{flex:1;min-width:220px;padding:12px 16px;border:1px solid var(--border-strong);border-radius:999px;background:var(--surface);color:var(--text);font-family:var(--sans);font-size:14px}
+.lookup-form input:focus{outline:none;border-color:var(--accent)}
+.lookup-form button{padding:12px 26px;border:0;border-radius:999px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;cursor:pointer;transition:opacity .15s}
+.lookup-form button:hover{opacity:0.88}
+.lookup-form button:disabled{opacity:0.5;cursor:not-allowed}
+.lookup-examples{font-size:12px;color:var(--text-subtle);margin-bottom:8px}
+.lookup-examples button{background:none;border:0;color:var(--accent);font-family:var(--mono);font-size:11.5px;cursor:pointer;padding:0 2px;text-decoration:underline}
+.lookup-status{margin-top:16px;max-width:560px}
+.status-line{font-family:var(--mono);font-size:12px;color:var(--text-muted);margin-bottom:8px}
+.progress-track{height:6px;background:var(--surface2);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;background:var(--accent);width:0%;transition:width .2s}
+.lookup-error{margin-top:16px;padding:12px 16px;background:var(--surface2);border-left:3px solid var(--loss);color:var(--text);font-size:13px;max-width:620px}
+.reset-link{background:none;border:0;color:var(--text-subtle);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;padding:0;text-decoration:underline}
+.reset-link:hover{color:var(--accent)}
+
+/* Section masthead */
+.sec-mast{margin:44px 0 18px;border-top:1px solid var(--border-strong);padding-top:18px}
+.sec-mast .kick{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.16em;color:var(--accent3);margin-bottom:6px}
+.sec-mast h2{font-family:var(--serif);font-weight:800;font-size:30px;line-height:1.1;letter-spacing:-0.5px;margin-bottom:6px}
+.sec-mast .sub{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text-muted);max-width:800px}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:4px}
+.kpi{background:var(--surface);border:1px solid var(--border);padding:16px 16px 14px;border-radius:2px;position:relative;box-shadow:var(--shadow-sm)}
+.kpi .label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:8px}
+.kpi .val{font-family:var(--serif);font-weight:800;font-size:30px;line-height:1;letter-spacing:-0.8px;color:var(--text)}
+.kpi .val.sm{font-size:22px}
+.kpi .sub{font-size:11px;color:var(--text-muted);margin-top:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em}
+.kpi.accent .val{color:var(--accent)}
+.kpi.win .val{color:var(--win)}
+.kpi.loss .val{color:var(--loss)}
+@media (max-width:900px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+
+/* Cards */
+.grid{display:grid;gap:14px}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--border);padding:18px 20px 20px;border-radius:2px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.card-h{font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.2;letter-spacing:-0.2px;color:var(--text);margin-bottom:4px}
+.card-sh{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-subtle);margin-bottom:14px}
+.card-note{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text-muted);line-height:1.5}
+
+.chart-wrap{position:relative;width:100%}
+.chart-h180{height:180px}
+.chart-h220{height:220px}
+.chart-h260{height:260px}
+.chart-h300{height:300px}
+.chart-h320{height:320px}
+.chart-h360{height:360px}
+
+/* Callout */
+.callout{background:var(--surface2);border-left:3px solid var(--accent3);padding:14px 18px;margin:14px 0;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--text-muted);line-height:1.55}
+.callout b{color:var(--text);font-weight:700;font-style:normal}
+
+/* Horizontal bar opening rows */
+.op-table{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.op-row{display:grid;grid-template-columns:1fr 200px 70px;gap:10px;align-items:center;padding:5px 0;border-bottom:1px dotted var(--border);font-size:12.5px}
+.op-row:last-child{border-bottom:none}
+.op-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.op-name .eco{font-family:var(--mono);font-size:10.5px;color:var(--text-subtle);margin-right:6px;background:var(--surface2);padding:1px 5px;border-radius:2px}
+.op-bar{display:flex;height:14px;border-radius:2px;overflow:hidden;background:var(--surface2)}
+.op-bar .seg-w{background:var(--win)}
+.op-bar .seg-l{background:var(--loss)}
+.op-bar .seg-d{background:var(--draw)}
+.op-wrate{font-family:var(--mono);font-size:11px;text-align:right;color:var(--text)}
+.op-wrate .n{color:var(--text-subtle);margin-left:4px;font-size:10px}
+
+/* Streaks block */
+.streak-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.streak{background:var(--surface2);padding:14px;border-radius:2px;border:1px solid var(--border)}
+.streak .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-subtle)}
+.streak .v{font-family:var(--serif);font-size:26px;font-weight:800;color:var(--accent);margin-top:4px}
+.streak .s{font-size:11px;color:var(--text-muted);margin-top:2px}
+
+/* Footer / methodology */
+.foot{margin-top:60px;padding-top:22px;border-top:1px solid var(--border);font-size:12px;color:var(--text-subtle);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;line-height:1.6}
+.foot a{color:var(--text-subtle);text-decoration:underline}
+
+.badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.08em}
+.coffee-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.coffee-btn{display:inline-flex;align-items:center;gap:7px;margin-top:0;padding:8px 16px;background:#ffdd00;color:#1a1a1a;font-weight:700;font-size:12px;font-family:var(--sans);text-transform:none;letter-spacing:normal;border-radius:999px;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .15s,box-shadow .15s}
+.coffee-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,0,0,.2)}
+.coffee-qr{width:56px;height:56px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:4px}
+.badge.warn{border-color:var(--accent4);color:var(--accent4)}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><span id="t-icon">◐</span><span id="t-label">Dark</span></button>
+  <div class="mast-kicker">Chess Analytics · Lichess</div>
+  <h1 class="mast-title" id="mast-title">Chess performance dashboard</h1>
+  <p class="mast-sub" id="mast-sub">Enter any public Lichess username to get the same data-led breakdown — ratings arc, opening repertoire, endings, and more.</p>
+
+  <div class="lookup-form" id="lookup-form">
+    <input type="text" id="username-input" placeholder="Lichess username, e.g. DrNykterstein" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')startLookup()">
+    <button id="lookup-btn" onclick="startLookup()">Analyze</button>
+  </div>
+  <div class="lookup-examples" id="lookup-examples">
+    Try: <button onclick="fillExample('DrNykterstein')">DrNykterstein</button> ·
+    <button onclick="fillExample('penguingim1')">penguingim1</button> ·
+    <button onclick="fillExample('Zhigalko_Sergei')">Zhigalko_Sergei</button>
+  </div>
+
+  <div class="lookup-status" id="lookup-status" style="display:none">
+    <div class="status-line" id="status-line">Fetching games…</div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="lookup-error" id="lookup-error" style="display:none"></div>
+
+  <div class="mast-filter" id="filter-row" role="tablist" aria-label="Time control filter" style="display:none"></div>
+  <div class="mast-byline" id="mast-byline" style="display:none">
+    <span id="byline-name"></span>
+    <span class="sep">·</span>
+    <span id="pulled">Pulled —</span>
+    <span class="sep">·</span>
+    <span id="byline-link"></span>
+    <span class="sep">·</span>
+    <button class="reset-link" onclick="resetLookup()">↺ Analyze someone else</button>
+  </div>
+</div>
+
+<div id="dashboard-body" style="display:none">
+
+<!-- KPIs -->
+<div class="kpi-row" id="kpi-row"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: RECORD -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 1 · The overall record</div>
+  <h2 id="sec1-h2">Halfway there, to 50%</h2>
+  <p class="sub" id="sec1-sub">At nearly 1,500 decided games, the ledger sits just below an even split — a handful more losses than wins, and draws are a rarity.</p>
+</div>
+<div class="grid grid-3">
+  <div class="card"><div class="card-h">Games won / lost / drew</div><div class="card-sh">All games · all time controls</div><div class="chart-wrap chart-h220"><canvas id="c-wld"></canvas></div></div>
+  <div class="card"><div class="card-h">Win rate by colour</div><div class="card-sh">Does side of the board matter?</div><div class="chart-wrap chart-h220"><canvas id="c-color"></canvas></div></div>
+  <div class="card"><div class="card-h">Win rate by time control</div><div class="card-sh">Rapid dominates the sample</div><div class="chart-wrap chart-h220"><canvas id="c-speed"></canvas></div></div>
+</div>
+<div class="callout" id="co-record"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: RATING -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 2 · The rating journey</div>
+  <h2>Peak, trough, and the long grind</h2>
+  <p class="sub">Rapid rating across every game played — one dot, one game — with peak, low and current points highlighted.</p>
+</div>
+<div class="card">
+  <div class="card-h">Rapid rating over time</div>
+  <div class="card-sh">Every rapid game · from first rated game to today</div>
+  <div class="chart-wrap chart-h360"><canvas id="c-rating"></canvas></div>
+</div>
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">50-game rolling win rate</div><div class="card-sh">Smoothed form — volatility of performance</div><div class="chart-wrap chart-h260"><canvas id="c-rolling"></canvas></div></div>
+  <div class="card"><div class="card-h">Record when ELO-favoured</div><div class="card-sh">Win rate bucketed by rating gap at game start</div><div class="chart-wrap chart-h260"><canvas id="c-favour"></canvas></div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: ENDINGS -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 3 · How the games end</div>
+  <h2 id="sec3-h2">Wins come by resignation, losses by checkmate</h2>
+  <p class="sub" id="sec3-sub">A clear asymmetry: opponents resign more often, but losses tend to come by checkmate rather than a forced surrender.</p>
+</div>
+<div class="grid grid-3">
+  <div class="card"><div class="card-h">Wins end in…</div><div class="card-sh">Termination method across all wins</div><div class="chart-wrap chart-h260"><canvas id="c-wend"></canvas></div></div>
+  <div class="card"><div class="card-h">Losses end in…</div><div class="card-sh">Termination method across all losses</div><div class="chart-wrap chart-h260"><canvas id="c-lend"></canvas></div></div>
+  <div class="card"><div class="card-h">Draws</div><div class="card-sh" id="draws-sh">Only 45 in 1,528 games — a rare event</div><div class="chart-wrap chart-h260"><canvas id="c-dend"></canvas></div></div>
+</div>
+
+<!-- Mating piece -->
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">Mating piece delivered</div><div class="card-sh">The piece that gave the final check</div><div class="chart-wrap chart-h220"><canvas id="c-mate-g"></canvas></div></div>
+  <div class="card"><div class="card-h">Mating piece received</div><div class="card-sh">Most common mating piece against them</div><div class="chart-wrap chart-h220"><canvas id="c-mate-r"></canvas></div></div>
+</div>
+<div class="callout" id="co-mate"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: OPENINGS -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 4 · Openings</div>
+  <h2 id="sec4-h2">The Caro-Kann shadow</h2>
+  <p class="sub" id="sec4-sub">Of the 1,527 games with an identified opening, the top 15 carry most of the volume — and the Caro-Kann Defence is the one faced most often by a wide margin.</p>
+</div>
+<div class="card">
+  <div class="card-h">Top openings — frequency and result split</div>
+  <div class="card-sh">Minimum 15 games · sorted by volume · segments show wins / losses / draws</div>
+  <div class="op-table" id="op-table"></div>
+</div>
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">Games by ECO family</div><div class="card-sh">A = flank openings · B = semi-open · C = open (1.e4 e5) · D = closed (1.d4 d5) · E = Indian defences</div><div class="chart-wrap chart-h260"><canvas id="c-family"></canvas></div></div>
+  <div class="card"><div class="card-h">Win % by ECO family</div><div class="card-sh">Min 20 games included</div><div class="chart-wrap chart-h260"><canvas id="c-familywin"></canvas></div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: MOVES -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 5 · Game length</div>
+  <h2 id="sec5-h2">Short wins, short losses, long draws</h2>
+  <p class="sub" id="sec5-sub">Wins and losses average around 30 moves. Draws take nearly twice as long — the board usually simplifies before anyone will concede.</p>
+</div>
+<div class="grid grid-2">
+  <div class="card"><div class="card-h">Game length by result</div><div class="card-sh">Distribution of full moves · 5-move buckets</div><div class="chart-wrap chart-h300"><canvas id="c-movehist"></canvas></div></div>
+  <div class="card"><div class="card-h">Average moves played</div><div class="card-sh">By result · ended games only</div><div class="chart-wrap chart-h300"><canvas id="c-moveavg"></canvas></div></div>
+</div>
+
+<!-- ============================================ -->
+<!-- SECTION: PHASES & MATERIAL -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 5½ · Phases &amp; material</div>
+  <h2>When games end, and how much material was on the board</h2>
+  <p class="sub">Where games terminate and the material balance carried into the final position. Material counted with standard values (P=1, N=B=3, R=5, Q=9).</p>
+</div>
+<div class="grid grid-2">
+  <div class="card"><div class="card-h">Where games end</div><div class="card-sh">Result share by ending phase (move count at the final move)</div><div class="chart-wrap chart-h320"><canvas id="c-phase"></canvas></div></div>
+  <div class="card"><div class="card-h">Win rate by ending phase</div><div class="card-sh">Decisive win rate per phase · draws excluded</div><div class="chart-wrap chart-h320"><canvas id="c-phasewin"></canvas></div></div>
+</div>
+<div class="grid grid-2" style="margin-top:14px">
+  <div class="card"><div class="card-h">Material at end of game</div><div class="card-sh">Own material minus opponent's · bucketed · chess.js board simulation</div><div class="chart-wrap chart-h320"><canvas id="c-mat"></canvas></div></div>
+  <div class="card"><div class="card-h">Material trajectory</div><div class="card-sh">Average (own − opp) material at move 10, 20, 30 · by final result</div><div class="chart-wrap chart-h320"><canvas id="c-mattraj"></canvas></div></div>
+</div>
+<div style="margin-top:14px" id="mat-callout" class="callout"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: ACTIVITY & STREAKS -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 6 · Activity &amp; streaks</div>
+  <h2>Activity over time, and the runs along the way</h2>
+  <p class="sub">Games per month and the longest hot and cold streaks on record.</p>
+</div>
+<div class="card">
+  <div class="card-h">Games per month</div>
+  <div class="card-sh">All time controls · stacked by result</div>
+  <div class="chart-wrap chart-h300"><canvas id="c-month"></canvas></div>
+</div>
+<div class="streak-grid" style="margin-top:14px" id="streak-grid"></div>
+
+<!-- ============================================ -->
+<!-- SECTION: FIRST MOVES -->
+<!-- ============================================ -->
+<div class="sec-mast">
+  <div class="kick">§ 7 · Repertoire</div>
+  <h2>Opening repertoire</h2>
+  <p class="sub">Most common first moves as White, and replies as Black, with win rates alongside.</p>
+</div>
+<div class="grid grid-2">
+  <div class="card"><div class="card-h">First move as White</div><div class="card-sh">Most-played openings · min 10 games</div><div class="chart-wrap chart-h300"><canvas id="c-fmw"></canvas></div></div>
+  <div class="card"><div class="card-h">Reply as Black</div><div class="card-sh">Most-played replies · min 10 games</div><div class="chart-wrap chart-h300"><canvas id="c-fmb"></canvas></div></div>
+</div>
+
+</div><!-- /dashboard-body -->
+
+<!-- FOOTER / METHOD -->
+<div class="foot">
+  <div><b>Methodology.</b> Data pulled live from your browser, straight from the Lichess public API (<code>/api/games/user/<span id="meth-user">…</span></code>) — no server involved, nothing is stored. Ratings shown are post-game (pre-game + rating change). "Decisive win %" = wins ÷ (wins + losses), excluding draws. Material at end-of-game computed by simulating SAN moves with chess.js in a background worker; values are standard (P=1, N=B=3, R=5, Q=9). ECO family derives from the opening's ECO-code letter.</div>
+  <div style="margin-top:10px">Built by Damjan Vlastelica · <a href="https://damjanv1.github.io/cv-dashboard/Damjan-Vlastelica-Dashboard-CV.html">CV dashboard</a> · <a href="https://damjanv1.github.io/projects/">all projects</a> · <a href="chess-dashboard.html">my own chess dashboard</a></div>
+  <div class="coffee-row">
+    <a href="https://buymeacoffee.com/damjanv1" target="_blank" rel="noopener" class="coffee-btn">☕ Buy me a coffee</a>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=112x112&data=https%3A%2F%2Fbuymeacoffee.com%2Fdamjanv1" alt="Scan to buy me a coffee" class="coffee-qr" loading="lazy" width="56" height="56">
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ==== STATE ====
+let DATA = null, SUMMARY = null, CURRENT_FILTER = 'all', CURRENT_USERNAME = '', CURRENT_DISPLAY_NAME = '';
+
+// ==== THEME ====
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('cd-theme', next); } catch(e){}
+  document.getElementById('t-label').textContent = next === 'dark' ? 'Light' : 'Dark';
+  if (DATA) renderAll();
+}
+(function(){ document.getElementById('t-label').textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark'; })();
+
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function cssvar(n){ return css('--' + n); }
+function palette(){
+  return {
+    text: cssvar('text'), muted: cssvar('text-muted'), subtle: cssvar('text-subtle'), border: cssvar('border'),
+    accent: cssvar('accent'), accent2: cssvar('accent2'), accent3: cssvar('accent3'), accent4: cssvar('accent4'), accent5: cssvar('accent5'),
+    win: cssvar('win'), loss: cssvar('loss'), draw: cssvar('draw'),
+  };
+}
+
+// ==== LOOKUP UI HELPERS ====
+function showStatus(show){
+  document.getElementById('lookup-status').style.display = show ? '' : 'none';
+  if (!show) document.getElementById('progress-fill').style.width = '0%';
+}
+function setStatus(text, pct){
+  document.getElementById('status-line').textContent = text;
+  if (pct != null) document.getElementById('progress-fill').style.width = Math.min(100, pct) + '%';
+}
+function showLookupError(msg){
+  const el = document.getElementById('lookup-error');
+  el.textContent = msg; el.style.display = '';
+}
+function hideLookupError(){ document.getElementById('lookup-error').style.display = 'none'; }
+
+function fillExample(name){ document.getElementById('username-input').value = name; startLookup(); }
+
+function resetLookup(){
+  document.getElementById('dashboard-body').style.display = 'none';
+  document.getElementById('filter-row').style.display = 'none';
+  document.getElementById('mast-byline').style.display = 'none';
+  document.getElementById('lookup-form').style.display = '';
+  document.getElementById('lookup-examples').style.display = '';
+  document.getElementById('mast-title').textContent = 'Chess performance dashboard';
+  document.getElementById('mast-sub').textContent = 'Enter any public Lichess username to get the same data-led breakdown — ratings arc, opening repertoire, endings, and more.';
+  document.getElementById('username-input').value = '';
+  hideLookupError();
+  document.getElementById('username-input').focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function revealDashboard(){
+  document.getElementById('lookup-form').style.display = 'none';
+  document.getElementById('lookup-examples').style.display = 'none';
+  document.getElementById('mast-title').textContent = CURRENT_DISPLAY_NAME + '’s chess performance';
+  document.getElementById('byline-name').textContent = CURRENT_DISPLAY_NAME;
+  document.getElementById('byline-link').innerHTML = '<a href="https://lichess.org/@/' + encodeURIComponent(CURRENT_USERNAME) + '" target="_blank">lichess.org/@/' + CURRENT_DISPLAY_NAME + '</a>';
+  document.getElementById('meth-user').textContent = CURRENT_USERNAME.toLowerCase();
+  document.getElementById('filter-row').style.display = '';
+  document.getElementById('mast-byline').style.display = '';
+  document.getElementById('dashboard-body').style.display = '';
+}
+
+// ==== FETCH GAMES (streamed NDJSON, client-side, no cap) ====
+async function fetchGames(username, onProgress){
+  const url = 'https://lichess.org/api/games/user/' + encodeURIComponent(username) + '?opening=true&perfType=rapid,blitz,bullet,classical&pgnInJson=false&literate=false';
+  let res;
+  try { res = await fetch(url, { headers: { Accept: 'application/x-ndjson' } }); }
+  catch (e) { throw new Error('Could not reach Lichess — check your connection and try again.'); }
+  if (res.status === 404) throw new Error('No Lichess player found with the username "' + username + '".');
+  if (res.status === 429) throw new Error('Lichess is rate-limiting requests right now — wait a few seconds and try again.');
+  if (!res.ok) throw new Error('Lichess API returned an error (status ' + res.status + '). Try again in a moment.');
+  const uname = username.toLowerCase();
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  const games = [];
+  let displayName = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let idx;
+    while ((idx = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, idx); buf = buf.slice(idx + 1);
+      if (line.trim()) {
+        try {
+          const g = JSON.parse(line);
+          games.push(g);
+          if (!displayName) {
+            if (g.players.white.user && g.players.white.user.id === uname) displayName = g.players.white.user.name;
+            else if (g.players.black.user && g.players.black.user.id === uname) displayName = g.players.black.user.name;
+          }
+        } catch(e) { /* skip malformed line */ }
+      }
+    }
+    onProgress(games.length);
+  }
+  if (buf.trim()) { try { games.push(JSON.parse(buf)); } catch(e){} }
+  return { games, displayName };
+}
+
+// ==== ANALYSIS WORKER ====
+// Ported from chess/aggregate.js, parameterized by userId instead of a hardcoded
+// account, with progress messages for the chess.js material-replay pass (the
+// expensive part) so the UI can show live progress instead of freezing.
+const WORKER_SRC = `
+import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/dist/esm/chess.js';
+
+const FAMILY_NAMES = {
+  A: 'Flank openings & English',
+  B: 'Semi-open (Sicilian, Caro-Kann, etc.)',
+  C: 'Open games (1.e4 e5) & French',
+  D: 'Closed & Semi-closed (1.d4 d5, Slav, QGD)',
+  E: 'Indian defences (KID, NID, QID)',
+};
+const PIECE_VALUE = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+function makeHelpers(userId) {
+  const myColor = g => (g.players.white.user && g.players.white.user.id === userId) ? 'white' : 'black';
+  const oppColor = g => myColor(g) === 'white' ? 'black' : 'white';
+  const result = g => { if (!g.winner) return 'draw'; return g.winner === myColor(g) ? 'win' : 'loss'; };
+  const myRating = g => g.players[myColor(g)].rating;
+  const oppRating = g => g.players[oppColor(g)].rating;
+  const ratingDiff = g => (g.players[myColor(g)].ratingDiff) || 0;
+  const moveList = g => (g.moves || '').split(' ').filter(Boolean);
+  return { myColor, oppColor, result, myRating, oppRating, ratingDiff, moveList };
+}
+
+const pieceFromMove = (san) => {
+  if (!san) return null;
+  const s = san.replace(/[+#!?]/g, '');
+  if (s.startsWith('O-O')) return 'King';
+  const c = s[0];
+  if (c === 'Q') return 'Queen';
+  if (c === 'R') return 'Rook';
+  if (c === 'B') return 'Bishop';
+  if (c === 'N') return 'Knight';
+  if (c === 'K') return 'King';
+  return 'Pawn';
+};
+const ecoFamily = eco => { if (!eco) return '?'; const c = eco[0]; return 'ABCDE'.includes(c) ? c : '?'; };
+
+function countMaterial(board) {
+  let white = 0, black = 0;
+  for (const row of board) for (const sq of row) {
+    if (!sq) continue;
+    const v = PIECE_VALUE[sq.type] || 0;
+    if (sq.color === 'w') white += v; else black += v;
+  }
+  return { white, black };
+}
+
+function analyzeMaterial(games, H, onProgress) {
+  let done = 0;
+  for (const g of games) {
+    try {
+      const moves = H.moveList(g);
+      const chess = new Chess();
+      const snapshots = {};
+      for (let i = 0; i < moves.length; i++) {
+        chess.move(moves[i], { strict: false });
+        const ply = i + 1;
+        if (ply === 20 || ply === 40 || ply === 60) snapshots[ply] = countMaterial(chess.board());
+      }
+      const final = countMaterial(chess.board());
+      const myCol = H.myColor(g) === 'white' ? 'white' : 'black';
+      const oppCol = myCol === 'white' ? 'black' : 'white';
+      g._matFinal = final[myCol] - final[oppCol];
+      g._matSnapshots = {};
+      for (const ply of [20, 40, 60]) if (snapshots[ply]) g._matSnapshots[ply] = snapshots[ply][myCol] - snapshots[ply][oppCol];
+    } catch (e) {
+      g._matFailed = true;
+    }
+    done++;
+    if (done % 200 === 0 || done === games.length) onProgress(done, games.length);
+  }
+}
+
+function buildAgg(games, userId, label) {
+  const H = makeHelpers(userId);
+  const { myColor, result, myRating, oppRating, ratingDiff, moveList } = H;
+  const agg = {
+    meta: {
+      userId, label, pulledAt: new Date().toISOString(),
+      totalGames: games.length,
+      firstGame: games.length ? new Date(Math.min(...games.map(g => g.createdAt))).toISOString() : null,
+      lastGame:  games.length ? new Date(Math.max(...games.map(g => g.createdAt))).toISOString() : null,
+    },
+  };
+  if (!games.length) return agg;
+
+  let w = 0, l = 0, d = 0;
+  games.forEach(g => { const r = result(g); if (r === 'win') w++; else if (r === 'loss') l++; else d++; });
+  const rapidPost = games.filter(g => g.speed === 'rapid').map(g => myRating(g) + (ratingDiff(g) || 0));
+  const lastRapid = games.filter(g => g.speed === 'rapid').sort((a, b) => b.createdAt - a.createdAt)[0];
+  const lastRapidPost = lastRapid ? (lastRapid.players[myColor(lastRapid)].rating + (lastRapid.players[myColor(lastRapid)].ratingDiff || 0)) : null;
+  agg.kpi = {
+    total: games.length, wins: w, losses: l, draws: d,
+    winPct: +(w / games.length * 100).toFixed(2),
+    winPctDecisive: +(w / ((w + l) || 1) * 100).toFixed(2),
+    rapidRatingCurrent: lastRapidPost,
+    rapidPeak: rapidPost.length ? Math.max(...rapidPost) : null,
+    rapidLow:  rapidPost.length ? Math.min(...rapidPost) : null,
+  };
+
+  const byColor = { white: { w: 0, l: 0, d: 0 }, black: { w: 0, l: 0, d: 0 } };
+  games.forEach(g => { const c = myColor(g); const r = result(g); byColor[c][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++; });
+  agg.byColor = byColor;
+
+  const bySpeed = {};
+  games.forEach(g => {
+    if (!bySpeed[g.speed]) bySpeed[g.speed] = { w: 0, l: 0, d: 0, n: 0 };
+    bySpeed[g.speed].n++;
+    const r = result(g);
+    bySpeed[g.speed][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+  });
+  agg.bySpeed = bySpeed;
+
+  const rapidGames = games.filter(g => g.speed === 'rapid').sort((a, b) => a.createdAt - b.createdAt);
+  agg.ratingOverTime = { rapid: rapidGames.map(g => [g.createdAt, myRating(g)]) };
+  agg.ratingAfter = { rapid: rapidGames.map(g => [g.createdAt, myRating(g) + (ratingDiff(g) || 0)]) };
+
+  const endings = { wins: {}, losses: {}, draws: {} };
+  games.forEach(g => {
+    const r = result(g);
+    const bucket = r === 'win' ? 'wins' : (r === 'loss' ? 'losses' : 'draws');
+    endings[bucket][g.status] = (endings[bucket][g.status] || 0) + 1;
+  });
+  agg.endings = endings;
+
+  const matingGiven = {}, matingReceived = {};
+  games.forEach(g => {
+    if (g.status !== 'mate') return;
+    const moves = moveList(g);
+    const piece = pieceFromMove(moves[moves.length - 1]);
+    if (!piece) return;
+    const r = result(g);
+    if (r === 'win') matingGiven[piece] = (matingGiven[piece] || 0) + 1;
+    else if (r === 'loss') matingReceived[piece] = (matingReceived[piece] || 0) + 1;
+  });
+  agg.matingPiece = { given: matingGiven, received: matingReceived };
+
+  const openingStats = {};
+  games.forEach(g => {
+    if (!g.opening) return;
+    const key = g.opening.name;
+    if (!openingStats[key]) openingStats[key] = { name: key, eco: g.opening.eco, n: 0, w: 0, l: 0, d: 0 };
+    const r = result(g);
+    openingStats[key].n++;
+    openingStats[key][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+  });
+  agg.openings = Object.values(openingStats).sort((a, b) => b.n - a.n);
+
+  const families = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+  const familiesResult = { A: { w: 0, l: 0, d: 0 }, B: { w: 0, l: 0, d: 0 }, C: { w: 0, l: 0, d: 0 }, D: { w: 0, l: 0, d: 0 }, E: { w: 0, l: 0, d: 0 } };
+  games.forEach(g => {
+    const f = ecoFamily(g.opening && g.opening.eco);
+    if (!(f in families)) return;
+    families[f]++;
+    const r = result(g);
+    familiesResult[f][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+  });
+  agg.families = Object.keys(families).map(k => ({ eco: k, name: FAMILY_NAMES[k], n: families[k], ...familiesResult[k] }));
+
+  const moveCounts = { win: [], loss: [], draw: [] };
+  games.forEach(g => moveCounts[result(g)].push(Math.ceil(moveList(g).length / 2)));
+  const stats = arr => {
+    if (!arr.length) return { n: 0, avg: 0, median: 0 };
+    const s = [...arr].sort((a, b) => a - b);
+    return { n: s.length, avg: +(s.reduce((a,b)=>a+b,0)/s.length).toFixed(1), median: s[Math.floor(s.length/2)] };
+  };
+  agg.moveStats = { win: stats(moveCounts.win), loss: stats(moveCounts.loss), draw: stats(moveCounts.draw) };
+  const bucketSize = 5, maxBucket = 100;
+  const histogram = { win: {}, loss: {}, draw: {} };
+  ['win','loss','draw'].forEach(r => {
+    for (let b = 0; b <= maxBucket; b += bucketSize) histogram[r][b] = 0;
+    moveCounts[r].forEach(m => { const b = Math.min(Math.floor(m/bucketSize)*bucketSize, maxBucket); histogram[r][b]++; });
+  });
+  agg.moveHistogram = histogram;
+
+  const byMonth = {};
+  games.forEach(g => {
+    const dt = new Date(g.createdAt);
+    const key = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0');
+    if (!byMonth[key]) byMonth[key] = { month: key, n: 0, w: 0, l: 0, d: 0 };
+    byMonth[key].n++;
+    const r = result(g);
+    byMonth[key][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+  });
+  agg.byMonth = Object.values(byMonth).sort((a, b) => a.month.localeCompare(b.month));
+
+  const favourBuckets = [
+    { label: 'Opp much stronger (>100)', lo: -Infinity, hi: -100, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Opp stronger (50-100)',    lo: -100,      hi: -50,  n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Even (±50)',               lo: -50,       hi: 50,   n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Favoured (50-100)',        lo:  50,       hi: 100,  n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Much stronger (>100)',     lo: 100, hi: Infinity, n: 0, w: 0, l: 0, d: 0 },
+  ];
+  games.forEach(g => {
+    const diff = myRating(g) - oppRating(g);
+    const b = favourBuckets.find(b => diff >= b.lo && diff < b.hi);
+    if (!b) return;
+    b.n++;
+    const r = result(g);
+    b[r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+  });
+  agg.favourBuckets = favourBuckets;
+
+  const firstMove = { asWhite: {}, asBlack: {} };
+  games.forEach(g => {
+    const moves = moveList(g); if (!moves.length) return;
+    const col = myColor(g);
+    const myFirst = col === 'white' ? moves[0] : moves[1];
+    if (!myFirst) return;
+    const key = col === 'white' ? 'asWhite' : 'asBlack';
+    if (!firstMove[key][myFirst]) firstMove[key][myFirst] = { move: myFirst, n: 0, w: 0, l: 0, d: 0 };
+    firstMove[key][myFirst].n++;
+    const r = result(g);
+    firstMove[key][myFirst][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+  });
+  agg.firstMoves = {
+    asWhite: Object.values(firstMove.asWhite).sort((a, b) => b.n - a.n),
+    asBlack: Object.values(firstMove.asBlack).sort((a, b) => b.n - a.n),
+  };
+
+  const sortedGames = [...games].sort((a, b) => a.createdAt - b.createdAt);
+  const rolling = [];
+  const w50 = Math.min(50, sortedGames.length);
+  if (w50 > 0) {
+    for (let i = w50 - 1; i < sortedGames.length; i++) {
+      let wc = 0, lc = 0;
+      for (let j = i - w50 + 1; j <= i; j++) { const r = result(sortedGames[j]); if (r === 'win') wc++; else if (r === 'loss') lc++; }
+      rolling.push({ idx: i + 1, ts: sortedGames[i].createdAt, winPct: +(wc / w50 * 100).toFixed(1) });
+    }
+  }
+  agg.rolling50 = rolling;
+
+  let curWin = 0, curLoss = 0, bestWin = 0, worstLoss = 0;
+  sortedGames.forEach(g => {
+    const r = result(g);
+    if (r === 'win') { curWin++; curLoss = 0; bestWin = Math.max(bestWin, curWin); }
+    else if (r === 'loss') { curLoss++; curWin = 0; worstLoss = Math.max(worstLoss, curLoss); }
+    else { curWin = 0; curLoss = 0; }
+  });
+  agg.streaks = { longestWin: bestWin, longestLoss: worstLoss };
+
+  const phaseFromPly = ply => ply < 20 ? 'Opening (<10 moves)' : (ply < 60 ? 'Middlegame (10-30)' : 'Endgame (30+)');
+  const phaseRecord = {
+    'Opening (<10 moves)': { n: 0, w: 0, l: 0, d: 0 },
+    'Middlegame (10-30)': { n: 0, w: 0, l: 0, d: 0 },
+    'Endgame (30+)':      { n: 0, w: 0, l: 0, d: 0 },
+  };
+  const matBuckets = [
+    { label: 'Down 9+',   lo: -Infinity, hi: -8.5, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Down 5-9',  lo: -8.5,      hi: -4.5, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Down 2-5',  lo: -4.5,      hi: -1.5, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Even (±1)', lo: -1.5,      hi:  1.5, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Up 2-5',    lo:  1.5,      hi:  4.5, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Up 5-9',    lo:  4.5,      hi:  8.5, n: 0, w: 0, l: 0, d: 0 },
+    { label: 'Up 9+',     lo:  8.5,      hi:  Infinity, n: 0, w: 0, l: 0, d: 0 },
+  ];
+  const matByResult = { win: [], loss: [], draw: [] };
+  const matTrajectory = { win: { 20: [], 40: [], 60: [] }, loss: { 20: [], 40: [], 60: [] }, draw: { 20: [], 40: [], 60: [] } };
+  for (const g of games) {
+    const r = result(g);
+    phaseRecord[phaseFromPly(moveList(g).length)].n++;
+    phaseRecord[phaseFromPly(moveList(g).length)][r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++;
+    if (g._matFailed || g._matFinal == null) continue;
+    const diff = g._matFinal;
+    matByResult[r].push(diff);
+    const b = matBuckets.find(b => diff >= b.lo && diff < b.hi);
+    if (b) { b.n++; b[r === 'win' ? 'w' : (r === 'loss' ? 'l' : 'd')]++; }
+    for (const ply of [20, 40, 60]) if (g._matSnapshots && g._matSnapshots[ply] != null) matTrajectory[r][ply].push(g._matSnapshots[ply]);
+  }
+  const mean = arr => arr.length ? +(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2) : null;
+  agg.phaseRecord = Object.entries(phaseRecord).map(([phase, v]) => ({ phase, ...v }));
+  agg.materialBuckets = matBuckets;
+  agg.materialByResult = {
+    win:  { n: matByResult.win.length,  mean: mean(matByResult.win) },
+    loss: { n: matByResult.loss.length, mean: mean(matByResult.loss) },
+    draw: { n: matByResult.draw.length, mean: mean(matByResult.draw) },
+  };
+  agg.materialTrajectory = {
+    win:  { 20: mean(matTrajectory.win[20]),  40: mean(matTrajectory.win[40]),  60: mean(matTrajectory.win[60]) },
+    loss: { 20: mean(matTrajectory.loss[20]), 40: mean(matTrajectory.loss[40]), 60: mean(matTrajectory.loss[60]) },
+    draw: { 20: mean(matTrajectory.draw[20]), 40: mean(matTrajectory.draw[40]), 60: mean(matTrajectory.draw[60]) },
+  };
+
+  return agg;
+}
+
+self.onmessage = (e) => {
+  const { games, userId } = e.data;
+  try {
+    const H = makeHelpers(userId);
+    analyzeMaterial(games, H, (done, total) => postMessage({ type: 'progress', done, total }));
+    const out = {
+      all:   buildAgg(games, userId, 'All games'),
+      rapid: buildAgg(games.filter(g => g.speed === 'rapid'), userId, 'Rapid only'),
+      blitz: buildAgg(games.filter(g => g.speed === 'blitz'), userId, 'Blitz only'),
+    };
+    postMessage({ type: 'done', data: out });
+  } catch (err) {
+    postMessage({ type: 'error', message: (err && err.message) || 'Analysis failed' });
+  }
+};
+`;
+const WORKER_URL = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'application/javascript' }));
+
+function runAnalysis(games, userId){
+  return new Promise((resolve, reject) => {
+    let worker;
+    try { worker = new Worker(WORKER_URL, { type: 'module' }); }
+    catch (err) { reject(new Error('This browser does not support the background analysis worker needed here. Try a recent Chrome, Edge, or Firefox.')); return; }
+    worker.onmessage = (e) => {
+      const msg = e.data;
+      if (msg.type === 'progress') setStatus('Analyzing games… ' + msg.done.toLocaleString() + ' / ' + msg.total.toLocaleString(), msg.done / msg.total * 100);
+      else if (msg.type === 'done') { resolve(msg.data); worker.terminate(); }
+      else if (msg.type === 'error') { reject(new Error(msg.message)); worker.terminate(); }
+    };
+    worker.onerror = (e) => { reject(new Error('Analysis failed unexpectedly: ' + (e.message || 'unknown error'))); worker.terminate(); };
+    worker.postMessage({ games, userId });
+  });
+}
+
+// ==== ORCHESTRATION ====
+async function startLookup(){
+  const input = document.getElementById('username-input');
+  const raw = input.value.trim();
+  hideLookupError();
+  if (!/^[a-zA-Z0-9_-]{2,30}$/.test(raw)) { showLookupError('Enter a valid Lichess username — letters, numbers, underscores and hyphens only.'); return; }
+  const btn = document.getElementById('lookup-btn');
+  btn.disabled = true;
+  showStatus(true);
+  try {
+    setStatus('Connecting to Lichess…', 0);
+    const { games, displayName } = await fetchGames(raw, (n) => setStatus('Fetching games… ' + n.toLocaleString() + ' so far', null));
+    if (!games.length) throw new Error('No rated rapid, blitz, bullet or classical games found for "' + raw + '". The account may be new, private, or only play other variants.');
+    setStatus('Analyzing ' + games.length.toLocaleString() + ' games… this can take a while for very active players', 0);
+    const data = await runAnalysis(games, raw.toLowerCase());
+    DATA = data; SUMMARY = DATA.all; CURRENT_FILTER = 'all';
+    CURRENT_USERNAME = raw; CURRENT_DISPLAY_NAME = displayName || raw;
+    showStatus(false);
+    revealDashboard();
+    renderFilterButtons();
+    renderAll();
+  } catch (err) {
+    showStatus(false);
+    showLookupError((err && err.message) || 'Something went wrong. Please try again.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function applyFilter(which){
+  if (!DATA[which]) return;
+  CURRENT_FILTER = which;
+  SUMMARY = DATA[which];
+  document.querySelectorAll('#filter-row button').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === which);
+    b.setAttribute('aria-selected', b.dataset.filter === which ? 'true' : 'false');
+  });
+  renderAll();
+}
+
+function renderFilterButtons(){
+  const row = document.getElementById('filter-row');
+  if (!row) return;
+  const opts = [
+    { key: 'all',   label: 'All' },
+    { key: 'rapid', label: 'Rapid' },
+    { key: 'blitz', label: 'Blitz' },
+  ];
+  row.innerHTML = opts
+    .filter(o => o.key === 'all' || (DATA[o.key] && DATA[o.key].kpi && DATA[o.key].kpi.total > 0))
+    .map(o => {
+      const n = (DATA[o.key] && DATA[o.key].kpi && DATA[o.key].kpi.total) || 0;
+      const active = o.key === CURRENT_FILTER ? ' active' : '';
+      const sel = o.key === CURRENT_FILTER ? 'true' : 'false';
+      return '<button role="tab" aria-selected="' + sel + '" data-filter="' + o.key + '" class="' + active.trim() + '" onclick="applyFilter(\'' + o.key + '\')">' + o.label + ' <span style="opacity:.6">(' + n.toLocaleString() + ')</span></button>';
+    }).join('');
+}
+
+// ==== HELPERS ====
+const fmt = (n, d=0) => n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (n, d=1) => (n * 100).toFixed(d) + '%';
+const ENDING_PHRASE = { mate: 'checkmate', resign: 'resignation', outoftime: 'timeout', timeout: 'timeout', draw: 'agreement', stalemate: 'stalemate', cheat: 'cheating', noStart: 'no start', unknownFinish: 'unknown finish', variantEnd: 'variant end' };
+function monthYear(iso){
+  return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
+const _charts = [];
+function mkChart(id, cfg){
+  const el = document.getElementById(id);
+  if (!el) return null;
+  try {
+    const existing = Chart.getChart(el);
+    if (existing) existing.destroy();
+    const c = new Chart(el, cfg);
+    _charts.push(c);
+    return c;
+  } catch (e) {
+    console.error('Chart error on ' + id, e);
+    return null;
+  }
+}
+function destroyAll(){ _charts.forEach(c => { try { c.destroy(); } catch(e){} }); _charts.length = 0; }
+function safe(name, fn, p){ try { fn(p); } catch(e){ console.error('Render error in ' + name, e); } }
+function setText(id, text){ const el = document.getElementById(id); if (el) el.textContent = text; }
+
+// ==== RENDER ALL ====
+function renderAll(){
+  destroyAll();
+  const p = palette();
+  Chart.defaults.color = p.muted;
+  Chart.defaults.borderColor = p.border;
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size = 11;
+
+  safe('KPIs', renderKPIs, p);
+  safe('WLD', renderWLD, p);
+  safe('Color', renderColor, p);
+  safe('Speed', renderSpeed, p);
+  safe('Callouts', renderCallouts, p);
+  safe('MastSub', renderMastSub, p);
+  safe('RecordNarrative', renderRecordNarrative, p);
+  safe('EndingsNarrative', renderEndingsNarrative, p);
+  safe('OpeningsNarrative', renderOpeningsNarrative, p);
+  safe('MovesNarrative', renderMovesNarrative, p);
+  safe('Rating', renderRating, p);
+  safe('Rolling', renderRolling, p);
+  safe('Favour', renderFavour, p);
+  safe('Endings', renderEndings, p);
+  safe('Mating', renderMating, p);
+  safe('Openings', renderOpenings, p);
+  safe('Families', renderFamilies, p);
+  safe('Moves', renderMoves, p);
+  safe('Phases', renderPhases, p);
+  safe('Material', renderMaterial, p);
+  safe('MaterialTraj', renderMaterialTraj, p);
+  safe('MaterialCallout', renderMaterialCallout, p);
+  safe('Month', renderMonth, p);
+  safe('Streaks', renderStreaks, p);
+  safe('FirstMoves', renderFirstMoves, p);
+}
+
+// ==== KPIs ====
+function renderKPIs(p){
+  const k = SUMMARY.kpi;
+  const pulled = new Date(SUMMARY.meta.pulledAt);
+  document.getElementById('pulled').textContent = 'Pulled ' + pulled.toISOString().slice(0,10);
+  const first = new Date(SUMMARY.meta.firstGame).toISOString().slice(0,10);
+  const last = new Date(SUMMARY.meta.lastGame).toISOString().slice(0,10);
+  const cards = [
+    { label: 'Games', val: fmt(k.total), sub: first + ' → ' + last, cls: '' },
+    { label: 'Wins', val: fmt(k.wins), sub: pct(k.wins/k.total), cls: 'win' },
+    { label: 'Losses', val: fmt(k.losses), sub: pct(k.losses/k.total), cls: 'loss' },
+    { label: 'Draws', val: fmt(k.draws), sub: pct(k.draws/k.total), cls: '' },
+    { label: 'Rapid rating', val: fmt(k.rapidRatingCurrent), sub: 'peak ' + k.rapidPeak + ' · low ' + k.rapidLow, cls: 'accent' },
+    { label: 'Decisive win %', val: k.winPctDecisive.toFixed(1) + '%', sub: 'of wins+losses', cls: '' },
+  ];
+  document.getElementById('kpi-row').innerHTML = cards.map(c =>
+    '<div class="kpi ' + c.cls + '"><div class="label">' + c.label + '</div><div class="val">' + c.val + '</div><div class="sub">' + c.sub + '</div></div>'
+  ).join('');
+}
+
+// ==== WIN/LOSS/DRAW ====
+function renderWLD(p){
+  const k = SUMMARY.kpi;
+  mkChart('c-wld', {
+    type: 'bar',
+    data: { labels: ['Won', 'Lost', 'Drawn'], datasets: [{ data: [k.wins, k.losses, k.draws], backgroundColor: [p.win, p.loss, p.draw], borderWidth: 0, maxBarThickness: 80 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, datalabelOutside: true, xPct: false, xTitle: 'Games', yTitle: 'Result' })
+  });
+}
+
+// ==== BY COLOUR ====
+function renderColor(p){
+  const w = SUMMARY.byColor.white, b = SUMMARY.byColor.black;
+  const wPctW = w.w/(w.w+w.l+w.d), wPctB = b.w/(b.w+b.l+b.d);
+  mkChart('c-color', {
+    type: 'bar',
+    data: { labels: ['As White', 'As Black'], datasets: [
+      { label: 'Win %', data: [wPctW*100, wPctB*100], backgroundColor: [p.accent, p.accent3], borderWidth: 0, maxBarThickness: 50 }
+    ]},
+    options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, datalabelOutside: true, max: 60, xTitle: 'Win rate', yTitle: 'Colour' })
+  });
+}
+
+// ==== BY SPEED ====
+function renderSpeed(p){
+  const keys = Object.keys(SUMMARY.bySpeed).filter(k => SUMMARY.bySpeed[k].n >= 5);
+  const labels = keys.map(k => k[0].toUpperCase() + k.slice(1));
+  const ns = keys.map(k => SUMMARY.bySpeed[k].n);
+  const wp = keys.map(k => { const s = SUMMARY.bySpeed[k]; return s.w/(s.w+s.l+s.d) * 100; });
+  mkChart('c-speed', {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Win %', data: wp, backgroundColor: keys.map(k => k === 'rapid' ? p.accent : p.accent4), borderWidth: 0, maxBarThickness: 45 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, datalabelOutside: true, max: 60, extraLabel: (i) => ns[i] + ' games', xTitle: 'Win rate', yTitle: 'Time control' })
+  });
+}
+
+// ==== CALLOUTS ====
+function renderCallouts(p){
+  const k = SUMMARY.kpi;
+  const wPctW = SUMMARY.byColor.white.w/(SUMMARY.byColor.white.w + SUMMARY.byColor.white.l + SUMMARY.byColor.white.d);
+  const wPctB = SUMMARY.byColor.black.w/(SUMMARY.byColor.black.w + SUMMARY.byColor.black.l + SUMMARY.byColor.black.d);
+  const colorGap = Math.abs(wPctW - wPctB) * 100;
+  const favColor = wPctW > wPctB ? 'White' : 'Black';
+  const gapWord = colorGap < 5 ? 'remarkably small' : (colorGap < 12 ? 'modest' : 'sizeable');
+  const drawShare = k.draws/k.total*100;
+  const drawWord = drawShare < 3 ? 'almost a rounding error' : (drawShare.toFixed(1) + '%');
+  document.getElementById('co-record').innerHTML =
+    'Across <b>' + fmt(k.total) + ' games</b> the record is <b>' + fmt(k.wins) + ' / ' + fmt(k.losses) + ' / ' + fmt(k.draws) + '</b> — a <b>' + k.winPct + '%</b> overall win rate. The colour gap is ' + gapWord + ' (' + colorGap.toFixed(1) + ' pts in favour of ' + favColor + '), which suggests ' + CURRENT_DISPLAY_NAME + "'s results " + (colorGap < 5 ? "don't hinge much" : 'hinge somewhat') + ' on side selection. Draws sit at <b>' + drawWord + '</b>.';
+
+  const mg = SUMMARY.matingPiece.given, mr = SUMMARY.matingPiece.received;
+  const myQ = mg.Queen||0, oppQ = mr.Queen||0;
+  const myMates = Object.values(mg).reduce((a,b)=>a+b,0);
+  const oppMates = Object.values(mr).reduce((a,b)=>a+b,0);
+  const mateEl = document.getElementById('co-mate');
+  if (!myMates && !oppMates) { mateEl.innerHTML = 'No checkmates in this set — every decisive game ended another way.'; return; }
+  mateEl.innerHTML =
+    'Opponents deliver checkmate <b>' + oppMates + '</b> times; ' + CURRENT_DISPLAY_NAME + ' delivers it <b>' + myMates + '</b> times the other way — the Queen accounts for <b>' + oppQ + '</b> (' + (oppMates ? (oppQ/oppMates*100).toFixed(0) : 0) + '%) of mates suffered vs <b>' + myQ + '</b> (' + (myMates ? (myQ/myMates*100).toFixed(0) : 0) + '%) of mates delivered.';
+}
+
+// ==== NARRATIVE HEADLINES ====
+function renderMastSub(){
+  const first = DATA.all && DATA.all.meta && DATA.all.meta.firstGame;
+  const since = first ? (' since ' + monthYear(first)) : '';
+  setText('mast-sub', 'A data-led look at how ' + CURRENT_DISPLAY_NAME + ' has played on Lichess' + since + ' — the ratings arc, the opening repertoire, and how the games evolve.');
+}
+
+function renderRecordNarrative(){
+  const k = SUMMARY.kpi;
+  if (!k || !k.total) return;
+  const diff = k.wins - k.losses;
+  const drawPct = k.draws / k.total * 100;
+  const headline = Math.abs(k.winPct - 50) <= 3
+    ? ('Right around the 50% mark, at ' + k.winPct.toFixed(0) + '%')
+    : (k.winPct > 50 ? ('Comfortably ahead, at ' + k.winPct.toFixed(0) + '%') : ('Still building toward 50%, at ' + k.winPct.toFixed(0) + '%'));
+  const margin = diff === 0 ? 'a dead-even split between wins and losses' : (fmt(Math.abs(diff)) + ' more ' + (diff > 0 ? 'wins than losses' : 'losses than wins'));
+  const drawWord = drawPct < 5 ? 'a rarity' : (drawPct < 12 ? 'uncommon' : 'a regular occurrence');
+  setText('sec1-h2', headline);
+  setText('sec1-sub', 'At ' + fmt(k.total) + ' decided games, the ledger sits at ' + fmt(k.wins) + '-' + fmt(k.losses) + '-' + fmt(k.draws) + ' — ' + margin + ', and draws are ' + drawWord + '.');
+}
+
+function renderEndingsNarrative(){
+  const e = SUMMARY.endings;
+  if (!e) return;
+  const top = (obj) => {
+    const entries = Object.entries(obj);
+    if (!entries.length) return null;
+    entries.sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((a, [, v]) => a + v, 0);
+    return { key: entries[0][0], count: entries[0][1], total };
+  };
+  const wTop = top(e.wins), lTop = top(e.losses), dTotal = Object.values(e.draws || {}).reduce((a, b) => a + b, 0);
+  const grandTotal = (wTop ? wTop.total : 0) + (lTop ? lTop.total : 0) + dTotal;
+  if (wTop && lTop) {
+    const headline = wTop.key === lTop.key
+      ? ('Wins and losses both come down to ' + (ENDING_PHRASE[wTop.key] || wTop.key))
+      : ('Wins come by ' + (ENDING_PHRASE[wTop.key] || wTop.key) + ', losses by ' + (ENDING_PHRASE[lTop.key] || lTop.key));
+    const sub = wTop.key === lTop.key
+      ? ('No real asymmetry here — most wins and most losses end the same way, by ' + (ENDING_PHRASE[wTop.key] || wTop.key) + '.')
+      : ('A clear asymmetry: wins mostly end by ' + (ENDING_PHRASE[wTop.key] || wTop.key) + ', while losses mostly end by ' + (ENDING_PHRASE[lTop.key] || lTop.key) + '.');
+    setText('sec3-h2', headline);
+    setText('sec3-sub', sub);
+  }
+  if (grandTotal) {
+    const drawPct = dTotal / grandTotal * 100;
+    const rarity = drawPct < 5 ? 'a rare event' : (drawPct < 12 ? 'uncommon' : (drawPct.toFixed(0) + '% of the ledger'));
+    setText('draws-sh', (dTotal === 1 ? 'Only 1' : (drawPct < 5 ? ('Only ' + fmt(dTotal)) : fmt(dTotal))) + ' in ' + fmt(grandTotal) + ' games — ' + rarity);
+  }
+}
+
+function renderOpeningsNarrative(){
+  const ops = SUMMARY.openings;
+  if (!ops || !ops.length) return;
+  const withOpening = ops.reduce((a, o) => a + o.n, 0);
+  const top = ops[0], second = ops[1];
+  const shortName = (name) => name.split(':')[0].trim();
+  const margin = second ? top.n / second.n : Infinity;
+  const headline = margin >= 1.5 ? ('The ' + shortName(top.name) + ' shadow') : ('Led by the ' + shortName(top.name));
+  const marginPhrase = !second ? '' : (margin >= 1.5 ? ' by a wide margin' : (', just ahead of the ' + shortName(second.name)));
+  setText('sec4-h2', headline);
+  setText('sec4-sub', 'Of the ' + fmt(withOpening) + ' games with an identified opening, the top 15 carry most of the volume — and the ' + shortName(top.name) + ' is the opening faced most often' + marginPhrase + '.');
+}
+
+function renderMovesNarrative(){
+  const s = SUMMARY.moveStats;
+  if (!s || !s.win || !s.loss || !s.draw) return;
+  const decisiveN = s.win.n + s.loss.n;
+  if (!decisiveN) return;
+  const decisiveAvg = (s.win.n * s.win.avg + s.loss.n * s.loss.avg) / decisiveN;
+  if (!s.draw.n) {
+    setText('sec5-h2', 'No draws in this set');
+    setText('sec5-sub', 'Wins and losses average around ' + Math.round(decisiveAvg) + ' moves. Every decided game so far has ended in a win or a loss.');
+    return;
+  }
+  const ratio = decisiveAvg ? s.draw.avg / decisiveAvg : 1;
+  let headline, tail;
+  if (ratio >= 1.25) { headline = 'Short wins, short losses, long draws'; tail = 'Draws take ' + ratio.toFixed(1) + '× as long — the board usually simplifies before anyone will concede.'; }
+  else if (ratio <= 0.8) { headline = 'Draws wrap up fast, decisive games run long'; tail = 'Draws take only ' + ratio.toFixed(1) + '× as long as decisive games — most get agreed early rather than played out.'; }
+  else { headline = 'Game length barely depends on the result'; tail = 'Draws run about as long as decisive games (' + ratio.toFixed(1) + "× the length) — length alone doesn't predict the outcome."; }
+  setText('sec5-h2', headline);
+  setText('sec5-sub', 'Wins and losses average around ' + Math.round(decisiveAvg) + ' moves. ' + tail);
+}
+
+// ==== RATING ====
+function renderRating(p){
+  const src = DATA.all;
+  const rawPts = (src.ratingAfter && src.ratingAfter.rapid && src.ratingAfter.rapid.length) ? src.ratingAfter.rapid : src.ratingOverTime.rapid;
+  if (!rawPts || !rawPts.length) return;
+  const byDay = new Map();
+  rawPts.forEach(pp => {
+    const d = new Date(pp[0]);
+    const key = d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + String(d.getUTCDate()).padStart(2,'0');
+    const cur = byDay.get(key);
+    if (!cur || pp[1] > cur.rating) byDay.set(key, { ts: pp[0], rating: pp[1], keyDay: key });
+  });
+  const pts = [...byDay.values()].sort((a,b) => a.ts - b.ts).map(r => [r.ts, r.rating]);
+  const peak = Math.max(...pts.map(pp => pp[1]));
+  const low = Math.min(...pts.map(pp => pp[1]));
+  const peakIdx = pts.findIndex(pp => pp[1] === peak);
+  const lowIdx = pts.findIndex(pp => pp[1] === low);
+  const lastRaw = rawPts[rawPts.length-1];
+  const current = lastRaw[1];
+  const data = pts.map(pp => ({ x: pp[0], y: pp[1] }));
+  const annots = [
+    { x: pts[peakIdx][0], y: peak, label: 'Peak ' + peak, color: p.accent5 },
+    { x: pts[lowIdx][0], y: low, label: 'Low ' + low, color: p.loss },
+    { x: lastRaw[0], y: current, label: 'Now ' + current, color: p.accent },
+  ];
+  const annotPlugin = {
+    id: 'annotPlugin',
+    afterDatasetsDraw(chart) {
+      const { ctx, scales } = chart;
+      annots.forEach(a => {
+        const x = scales.x.getPixelForValue(a.x);
+        const y = scales.y.getPixelForValue(a.y);
+        ctx.save();
+        ctx.fillStyle = a.color; ctx.strokeStyle = a.color; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = p.text;
+        ctx.font = "600 11px 'Inter', sans-serif";
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText('  ' + a.label, x, y - 10);
+        ctx.restore();
+      });
+    }
+  };
+  mkChart('c-rating', {
+    type: 'line',
+    data: { datasets: [{ label: 'Rapid rating', data, borderColor: p.accent, backgroundColor: p.accent + '22', pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.6, tension: 0.18, fill: true }]},
+    plugins: [annotPlugin],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      parsing: false,
+      scales: {
+        x: { type: 'time', time: { unit: 'month', displayFormats: { month: "MMM yy" } }, grid: { color: p.border, display: false }, ticks: { color: p.muted, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }, title: { display: true, text: 'Date', color: p.muted, font: { size: 11, weight: '600' } } },
+        y: { grid: { color: p.border }, ticks: { color: p.muted }, title: { display: true, text: 'Rapid rating (Glicko)', color: p.muted, font: { size: 11, weight: '600' } } }
+      },
+      plugins: { legend: { display: false }, dataLabel: { enabled: false }, tooltip: { callbacks: { title: (c) => new Date(c[0].parsed.x).toISOString().slice(0,10), label: (c) => 'Rating: ' + c.parsed.y } } }
+    }
+  });
+}
+
+// ==== ROLLING 50 ====
+function renderRolling(p){
+  if (!SUMMARY.rolling50 || !SUMMARY.rolling50.length) return;
+  const byDay = new Map();
+  SUMMARY.rolling50.forEach(r => {
+    const dt = new Date(r.ts);
+    const key = dt.getUTCFullYear() + '-' + String(dt.getUTCMonth()+1).padStart(2,'0') + '-' + String(dt.getUTCDate()).padStart(2,'0');
+    byDay.set(key, r);
+  });
+  const d = [...byDay.values()].sort((a,b) => a.ts - b.ts).map(r => ({ x: r.ts, y: r.winPct }));
+  mkChart('c-rolling', {
+    type: 'line',
+    data: { datasets: [{ label: '50-game win %', data: d, borderColor: p.accent3, backgroundColor: p.accent3 + '22', pointRadius: 0, borderWidth: 1.5, fill: true, tension: 0.2 }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      parsing: false,
+      scales: {
+        x: { type: 'time', time: { unit: 'month' }, grid: { color: p.border, display: false }, ticks: { color: p.muted, maxTicksLimit: 8, maxRotation: 0 }, title: { display: true, text: 'Date', color: p.muted, font: { size: 11, weight: '600' } } },
+        y: { min: 20, max: 80, grid: { color: p.border }, ticks: { color: p.muted, callback: v => v + '%' }, title: { display: true, text: 'Win rate (last 50 games)', color: p.muted, font: { size: 11, weight: '600' } } }
+      },
+      plugins: { legend: { display: false }, dataLabel: { enabled: false },
+        tooltip: { callbacks: { title: (c) => new Date(c[0].parsed.x).toISOString().slice(0,10), label: (c) => 'Win %: ' + c.parsed.y.toFixed(1) } }
+      }
+    }
+  });
+}
+
+// ==== FAVOUR ====
+function renderFavour(p){
+  const bk = SUMMARY.favourBuckets;
+  const labels = bk.map(b => b.label);
+  const winPct = bk.map(b => b.n ? b.w/b.n*100 : 0);
+  const ns = bk.map(b => b.n);
+  const colors = [p.loss, p.loss, p.draw, p.accent, p.win];
+  mkChart('c-favour', {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Win %', data: winPct, backgroundColor: colors, borderWidth: 0 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, extraLabel: (i) => ns[i] + ' games', max: 80, datalabelOutside: true, xTitle: 'Win rate', yTitle: 'Rating gap vs opponent' })
+  });
+}
+
+// ==== ENDINGS ====
+function renderEndings(p){
+  const statusLabels = { mate: 'Checkmate', resign: 'Resignation', outoftime: 'Lost on time', timeout: 'Timeout', draw: 'Agreed draw', stalemate: 'Stalemate', cheat: 'Cheat', noStart: 'No start', unknownFinish: 'Unknown', variantEnd: 'Variant end' };
+  const statusColors = {
+    mate: p.accent, resign: p.accent3, outoftime: p.accent5, timeout: p.accent4, draw: p.draw,
+    stalemate: p.accent2, cheat: p.loss, noStart: p.muted, unknownFinish: p.muted, variantEnd: p.accent4
+  };
+  const fallback = [p.accent, p.accent3, p.accent5, p.accent4, p.accent2, p.draw, p.loss, p.muted];
+  const statusOrder = ['mate','resign','outoftime','timeout','draw','stalemate','cheat','noStart','unknownFinish','variantEnd'];
+  const wEnd = SUMMARY.endings.wins, lEnd = SUMMARY.endings.losses, dEnd = SUMMARY.endings.draws;
+  const makeDonut = (canvasId, dataObj) => {
+    let entries = Object.entries(dataObj);
+    entries.sort((a,b) => {
+      const ai = statusOrder.indexOf(a[0]); const bi = statusOrder.indexOf(b[0]);
+      if (ai === -1 && bi === -1) return a[0].localeCompare(b[0]);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    const labels = entries.map(([k]) => statusLabels[k] || k);
+    const data = entries.map(([,v]) => v);
+    const colors = entries.map(([k], i) => statusColors[k] || fallback[i % fallback.length]);
+    mkChart(canvasId, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: cssvar('surface'), borderWidth: 2 }]},
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '55%',
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 11 }, color: p.muted } },
+          tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed + ' (' + (c.parsed/c.dataset.data.reduce((a,b)=>a+b,0)*100).toFixed(1) + '%)' } }
+        }
+      }
+    });
+  };
+  makeDonut('c-wend', wEnd);
+  makeDonut('c-lend', lEnd);
+  makeDonut('c-dend', dEnd);
+}
+
+// ==== MATING PIECE ====
+function renderMating(p){
+  const pieces = ['Queen', 'Rook', 'Bishop', 'Knight', 'Pawn', 'King'];
+  const given = pieces.map(pc => SUMMARY.matingPiece.given[pc] || 0);
+  const received = pieces.map(pc => SUMMARY.matingPiece.received[pc] || 0);
+  const pieceColors = [p.accent3, p.accent, p.accent5, p.accent4, p.accent2, p.draw];
+  const filter = (labels, data) => {
+    const out = { labels: [], data: [], colors: [] };
+    labels.forEach((l, i) => { if (data[i] > 0) { out.labels.push(l); out.data.push(data[i]); out.colors.push(pieceColors[i]); } });
+    return out;
+  };
+  const g = filter(pieces, given);
+  const r = filter(pieces, received);
+  mkChart('c-mate-g', {
+    type: 'bar',
+    data: { labels: g.labels, datasets: [{ data: g.data, backgroundColor: g.colors, borderWidth: 0, maxBarThickness: 40 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, datalabelOutside: true, xPct: false, xTitle: 'Checkmates delivered', yTitle: 'Mating piece' })
+  });
+  mkChart('c-mate-r', {
+    type: 'bar',
+    data: { labels: r.labels, datasets: [{ data: r.data, backgroundColor: r.colors, borderWidth: 0, maxBarThickness: 40 }] },
+    options: baseOpt({ indexAxis: 'y', legend: false, datalabelOutside: true, xPct: false, xTitle: 'Checkmates received', yTitle: 'Mating piece' })
+  });
+}
+
+// ==== OPENINGS TABLE ====
+function renderOpenings(p){
+  const MIN = 15;
+  const ops = SUMMARY.openings.filter(o => o.n >= MIN).slice(0, 20);
+  const maxN = Math.max(...ops.map(o => o.n));
+  document.getElementById('op-table').innerHTML = ops.map(o => {
+    const widthPct = (o.n / maxN * 100);
+    const wp = o.n ? (o.w/o.n*100).toFixed(0) : 0;
+    const wPct = o.n ? o.w/o.n*100 : 0;
+    const lPct = o.n ? o.l/o.n*100 : 0;
+    const dPct = o.n ? o.d/o.n*100 : 0;
+    return '<div class="op-row">' +
+      '<div class="op-name"><span class="eco">' + (o.eco||'?') + '</span>' + o.name + '</div>' +
+      '<div class="op-bar" title="' + o.w + 'W / ' + o.l + 'L / ' + o.d + 'D" style="width:' + widthPct + '%">' +
+        '<div class="seg-w" style="width:' + wPct + '%"></div>' +
+        '<div class="seg-l" style="width:' + lPct + '%"></div>' +
+        '<div class="seg-d" style="width:' + dPct + '%"></div>' +
+      '</div>' +
+      '<div class="op-wrate">' + wp + '%<span class="n">n=' + o.n + '</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+// ==== FAMILIES ====
+function renderFamilies(p){
+  const fs = SUMMARY.families;
+  mkChart('c-family', {
+    type: 'bar',
+    data: {
+      labels: fs.map(f => f.eco + ' · ' + f.name),
+      datasets: [
+        { label: 'Wins', data: fs.map(f=>f.w), backgroundColor: p.win, borderWidth: 0, stack: 's' },
+        { label: 'Draws', data: fs.map(f=>f.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: fs.map(f=>f.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ indexAxis: 'y', legend: true, stacked: true, xTitle: 'Games', yTitle: 'ECO family' })
+  });
+
+  const fsF = fs.filter(f => f.n >= 20);
+  mkChart('c-familywin', {
+    type: 'bar',
+    data: {
+      labels: fsF.map(f => f.eco),
+      datasets: [{ label: 'Win %', data: fsF.map(f => f.n ? f.w/f.n*100 : 0), backgroundColor: p.accent, borderWidth: 0, maxBarThickness: 46 }]
+    },
+    options: baseOpt({ legend: false, yPct: true, max: 70, extraLabel: (i) => fsF[i].n + ' games', xTitle: 'ECO family', yTitle: 'Win rate' })
+  });
+}
+
+// ==== MOVE HISTOGRAM ====
+function renderMoves(p){
+  const h = SUMMARY.moveHistogram;
+  const buckets = Object.keys(h.win).map(k => +k).sort((a,b)=>a-b);
+  const labels = buckets.map(b => b + '-' + (b+4));
+  mkChart('c-movehist', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Wins', data: buckets.map(b => h.win[b]||0), backgroundColor: p.win, borderWidth: 0 },
+        { label: 'Losses', data: buckets.map(b => h.loss[b]||0), backgroundColor: p.loss, borderWidth: 0 },
+        { label: 'Draws', data: buckets.map(b => h.draw[b]||0), backgroundColor: p.draw, borderWidth: 0 },
+      ]
+    },
+    options: baseOpt({ legend: true, xTitle: 'Full-move buckets', yTitle: 'Games' })
+  });
+
+  const s = SUMMARY.moveStats;
+  mkChart('c-moveavg', {
+    type: 'bar',
+    data: {
+      labels: ['Wins (n=' + s.win.n + ')', 'Losses (n=' + s.loss.n + ')', 'Draws (n=' + s.draw.n + ')'],
+      datasets: [
+        { label: 'Median', data: [s.win.median, s.loss.median, s.draw.median], backgroundColor: p.accent, borderWidth: 0 },
+        { label: 'Average', data: [s.win.avg, s.loss.avg, s.draw.avg], backgroundColor: p.accent3, borderWidth: 0 },
+      ]
+    },
+    options: baseOpt({ legend: true, indexAxis: 'y', datalabelOutside: true, xTitle: 'Full moves', yTitle: 'Result' })
+  });
+}
+
+// ==== PHASES & MATERIAL ====
+function renderPhases(p){
+  const pr = SUMMARY.phaseRecord || [];
+  if (!pr.length) return;
+  const labels = pr.map(x => x.phase);
+  mkChart('c-phase', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Wins',   data: pr.map(x => x.w), backgroundColor: p.win,  borderWidth: 0, stack: 's' },
+        { label: 'Draws',  data: pr.map(x => x.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: pr.map(x => x.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ indexAxis: 'y', legend: true, stacked: true, xTitle: 'Games', yTitle: 'Ending phase' })
+  });
+  const wpData = pr.map(x => (x.w + x.l) ? +(x.w/(x.w+x.l)*100).toFixed(1) : 0);
+  const colors = pr.map((_, i) => [p.accent, p.accent3, p.accent5][i] || p.accent);
+  mkChart('c-phasewin', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'Decisive win %', data: wpData, backgroundColor: colors, borderWidth: 0, maxBarThickness: 44 }]
+    },
+    options: baseOpt({ legend: false, yPct: true, max: 70, datalabelOutside: true, xTitle: 'Ending phase', yTitle: 'Decisive win %', extraLabel: (i) => pr[i].n + ' games' })
+  });
+}
+
+function renderMaterial(p){
+  const mb = SUMMARY.materialBuckets || [];
+  if (!mb.length) return;
+  const labels = mb.map(b => b.label);
+  mkChart('c-mat', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Wins',   data: mb.map(b => b.w), backgroundColor: p.win,  borderWidth: 0, stack: 's' },
+        { label: 'Draws',  data: mb.map(b => b.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: mb.map(b => b.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ indexAxis: 'y', legend: true, stacked: true, xTitle: 'Games', yTitle: 'Own − opp material at end' })
+  });
+}
+
+function renderMaterialTraj(p){
+  const t = SUMMARY.materialTrajectory || {};
+  if (!t.win) return;
+  const labels = ['Move 10 (ply 20)', 'Move 20 (ply 40)', 'Move 30 (ply 60)'];
+  const pick = (r) => [t[r]['20'] ?? null, t[r]['40'] ?? null, t[r]['60'] ?? null];
+  mkChart('c-mattraj', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Eventual wins',   data: pick('win'),  borderColor: p.win,  backgroundColor: p.win  + '22', borderWidth: 2, tension: 0.2, pointRadius: 4 },
+        { label: 'Eventual draws',  data: pick('draw'), borderColor: p.draw, backgroundColor: p.draw + '22', borderWidth: 2, tension: 0.2, pointRadius: 4 },
+        { label: 'Eventual losses', data: pick('loss'), borderColor: p.loss, backgroundColor: p.loss + '22', borderWidth: 2, tension: 0.2, pointRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: p.border, display: false }, ticks: { color: p.muted }, title: { display: true, text: 'Point in game', color: p.muted, font: { size: 11, weight: '600' } } },
+        y: { grid: { color: p.border }, ticks: { color: p.muted }, title: { display: true, text: 'Avg (own − opp) material', color: p.muted, font: { size: 11, weight: '600' } } }
+      },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: p.muted } },
+        dataLabel: { enabled: false },
+        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y == null ? '—' : (c.parsed.y > 0 ? '+' : '') + c.parsed.y) } }
+      }
+    }
+  });
+}
+
+function renderMaterialCallout(p){
+  const m = SUMMARY.materialByResult; if (!m) return;
+  const el = document.getElementById('mat-callout'); if (!el) return;
+  if (m.win.mean == null || m.loss.mean == null) { el.innerHTML = ''; return; }
+  const mb = SUMMARY.materialBuckets || [];
+  const up9 = mb.find(b => b.label === 'Up 9+');
+  const down9 = mb.find(b => b.label === 'Down 9+');
+  const even = mb.find(b => b.label === 'Even (±1)');
+  el.innerHTML = 'When ' + CURRENT_DISPLAY_NAME + ' wins, the mean material edge is <b>+' + m.win.mean + '</b>; when losing, <b>' + m.loss.mean + '</b>. ' +
+    (up9 ? ('Of games finished <b>up 9+</b> points of material (' + up9.n + ' games), the win rate is <b>' + (up9.w/up9.n*100).toFixed(0) + '%</b>. ') : '') +
+    (down9 ? ('Of games finished <b>down 9+</b> (' + down9.n + ' games), only <b>' + (down9.w/down9.n*100).toFixed(0) + '%</b> were salvaged. ') : '') +
+    (even ? ('In materially <b>even</b> endings (' + even.n + ' games) the decisive rate is <b>' + (even.w/(even.w+even.l)*100).toFixed(0) + '%</b> — the honest skill bracket where points are won or lost on the final moves.') : '');
+}
+
+// ==== BY MONTH ====
+function renderMonth(p){
+  const m = SUMMARY.byMonth;
+  mkChart('c-month', {
+    type: 'bar',
+    data: {
+      labels: m.map(x => x.month),
+      datasets: [
+        { label: 'Wins', data: m.map(x=>x.w), backgroundColor: p.win, borderWidth: 0, stack: 's' },
+        { label: 'Draws', data: m.map(x=>x.d), backgroundColor: p.draw, borderWidth: 0, stack: 's' },
+        { label: 'Losses', data: m.map(x=>x.l), backgroundColor: p.loss, borderWidth: 0, stack: 's' },
+      ]
+    },
+    options: baseOpt({ legend: true, stacked: true, xTitle: 'Month', yTitle: 'Games' })
+  });
+}
+
+// ==== STREAKS ====
+function renderStreaks(p){
+  const s = SUMMARY.streaks;
+  const k = SUMMARY.kpi;
+  const blocks = [
+    { l: 'Longest win streak', v: s.longestWin, sub: 'consecutive wins' },
+    { l: 'Longest losing streak', v: s.longestLoss, sub: 'consecutive losses' },
+    { l: 'Rapid peak', v: k.rapidPeak, sub: 'highest rating ever' },
+    { l: 'Rapid low', v: k.rapidLow, sub: 'lowest rating ever' },
+  ];
+  document.getElementById('streak-grid').innerHTML = blocks.map(b =>
+    '<div class="streak"><div class="l">' + b.l + '</div><div class="v">' + b.v + '</div><div class="s">' + b.sub + '</div></div>'
+  ).join('');
+}
+
+// ==== FIRST MOVES ====
+function renderFirstMoves(p){
+  const pick = (arr) => arr.filter(x => x.n >= 10).slice(0, 8);
+  const fmw = pick(SUMMARY.firstMoves.asWhite);
+  const fmb = pick(SUMMARY.firstMoves.asBlack);
+  const doChart = (id, data, color) => {
+    mkChart(id, {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.move + ' (n=' + d.n + ')'),
+        datasets: [{ label: 'Win %', data: data.map(d => d.w/d.n*100), backgroundColor: color, borderWidth: 0, maxBarThickness: 30 }]
+      },
+      options: baseOpt({ indexAxis: 'y', legend: false, xPct: true, datalabelOutside: true, max: 80, xTitle: 'Win rate', yTitle: 'First move' })
+    });
+  };
+  doChart('c-fmw', fmw, p.accent);
+  doChart('c-fmb', fmb, p.accent3);
+}
+
+// ==== BASE CHART OPTIONS ====
+function baseOpt(opts){
+  const p = palette();
+  const { indexAxis='x', legend=true, stacked=false, xPct=false, yPct=false, datalabelOutside=false, extraLabel, max=null, axisLabel=null, xTitle=null, yTitle=null } = opts || {};
+  const valueAxis = indexAxis === 'y' ? 'x' : 'y';
+  const mkTicks = (axis) => {
+    const isValue = axis === valueAxis;
+    const isPct = (axis === 'x' && xPct) || (axis === 'y' && yPct);
+    const t = { color: p.muted, autoSkip: true, maxRotation: 0 };
+    if (isValue && isPct) t.callback = (v) => v + '%';
+    return t;
+  };
+  const mkTitle = (axis) => {
+    const explicit = axis === 'x' ? xTitle : yTitle;
+    const text = explicit || (axisLabel && axis === indexAxis ? axisLabel : null);
+    if (!text) return undefined;
+    return { display: true, text, color: p.muted, font: { size: 11, weight: '600' } };
+  };
+  const o = {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis,
+    scales: {
+      x: { stacked, grid: { color: p.border, display: indexAxis === 'y' }, ticks: mkTicks('x'), max: (xPct && max) ? max : undefined, title: mkTitle('x') },
+      y: { stacked, grid: { color: p.border, display: indexAxis === 'x' }, ticks: mkTicks('y'), max: (yPct && max) ? max : undefined, title: mkTitle('y') }
+    },
+    plugins: {
+      legend: legend ? { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 }, color: p.muted } } : { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            let v = ctx.parsed[valueAxis];
+            let out = ctx.dataset.label ? ctx.dataset.label + ': ' : '';
+            out += (xPct || yPct) ? (typeof v === 'number' ? v.toFixed(1) + '%' : v) : fmt(v);
+            if (extraLabel) { const ex = extraLabel(ctx.dataIndex); if (ex) out += ' · ' + ex; }
+            return out;
+          }
+        }
+      }
+    }
+  };
+  if (datalabelOutside) {
+    o.plugins.dataLabel = { enabled: true };
+    o.layout = { padding: { right: indexAxis === 'y' ? 40 : 0, top: indexAxis === 'x' ? 16 : 0 } };
+  }
+  return o;
+}
+
+const dataLabelPlugin = {
+  id: 'dataLabel',
+  afterDatasetsDraw(chart) {
+    try {
+      const opts = chart.options || {};
+      if (!opts.plugins || !opts.plugins.dataLabel || !opts.plugins.dataLabel.enabled) return;
+      if (!opts.scales || !opts.scales.x) return;
+      const firstDsType = (chart.config && chart.config.data && chart.config.data.datasets[0] && chart.config.data.datasets[0].type) || (chart.config && chart.config.type);
+      if (firstDsType && firstDsType !== 'bar') return;
+      const p = palette();
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = "600 10.5px 'Inter', sans-serif";
+      ctx.fillStyle = p.text;
+      const isHoriz = opts.indexAxis === 'y';
+      const valueAxis = isHoriz ? 'x' : 'y';
+      const isPct = valueAxis === 'x' ? (opts.scales.x.max && opts.scales.x.max <= 100) : (opts.scales.y && opts.scales.y.max && opts.scales.y.max <= 100);
+      chart.data.datasets.forEach((ds, di) => {
+        if (ds.type && ds.type !== 'bar') return;
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach((bar, i) => {
+          const val = ds.data[i];
+          if (val == null) return;
+          if (typeof val !== 'number') return;
+          if (val === 0) return;
+          const text = isPct ? val.toFixed(1) + '%' : (Number.isInteger(val) ? String(val) : val.toFixed(1));
+          if (isHoriz) { ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('  ' + text, bar.x, bar.y); }
+          else { ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(text, bar.x, bar.y - 4); }
+        });
+      });
+      ctx.restore();
+    } catch (e) {
+      console.error('dataLabel plugin error', e);
+    }
+  }
+};
+Chart.register(dataLabelPlugin);
+</script>
+</body>
+</html>
