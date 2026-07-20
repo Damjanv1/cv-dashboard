@@ -370,7 +370,7 @@ function palette(){
 const fmt = (n, d=0) => n == null ? '—' : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const pct = (n, d=1) => (n * 100).toFixed(d) + '%';
 // Lowercase phrasing for use mid-sentence in narrative text (distinct from renderEndings' title-case chart labels)
-const ENDING_PHRASE = { mate: 'checkmate', resign: 'resignation', outoftime: 'timeout', timeout: 'timeout', draw: 'agreement', stalemate: 'stalemate', cheat: 'cheating', noStart: 'no start', unknownFinish: 'unknown finish', variantEnd: 'variant end' };
+const ENDING_PHRASE = { mate: 'checkmate', resign: 'resignation', outoftime: 'running out of time', timeout: 'abandonment', draw: 'agreement', stalemate: 'stalemate', cheat: 'cheating', noStart: 'no start', unknownFinish: 'unknown finish', variantEnd: 'variant end' };
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 function monthYear(iso){
   return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -701,7 +701,7 @@ function renderFavour(p){
 
 // ==== ENDINGS ====
 function renderEndings(p){
-  const statusLabels = { mate: 'Checkmate', resign: 'Resignation', outoftime: 'Lost on time', timeout: 'Timeout', draw: 'Agreed draw', stalemate: 'Stalemate', cheat: 'Cheat', noStart: 'No start', unknownFinish: 'Unknown', variantEnd: 'Variant end' };
+  const statusLabels = { mate: 'Checkmate', resign: 'Resignation', outoftime: 'Lost on time', timeout: 'Abandonment', draw: 'Agreed draw', stalemate: 'Stalemate', cheat: 'Cheat', noStart: 'No start', unknownFinish: 'Unknown', variantEnd: 'Variant end' };
   // Consistent colour per status code, shared across wins/losses/draws donuts
   const statusColors = {
     mate: p.accent,          // signature navy/teal
