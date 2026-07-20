@@ -755,9 +755,12 @@ function renderSuburb(view){
   const hi  = Math.max(...all);
   const pad = Math.max(2, (hi - lo) * 0.04);
   const range = { min: Math.floor((lo - pad) * 10) / 10, max: Math.ceil((hi + pad) * 10) / 10 };
-  // Reverse so top of chart = cheapest (cheap chart) / most expensive (exp chart)
-  renderSuburbChart('c-suburb-cheap', [...cheap].reverse(), cssvar('cheap'),   range);
-  renderSuburbChart('c-suburb-exp',   [...exp].reverse(),   cssvar('accent4'), range);
+  // Chart.js draws label index 0 at the top of a horizontal bar chart, and cheap/exp
+  // are already sorted with the most notable suburb first — so no reverse needed here.
+  // (A previous version reversed these, which put the LEAST notable of each top-25 at
+  // the top instead.)
+  renderSuburbChart('c-suburb-cheap', cheap, cssvar('cheap'),   range);
+  renderSuburbChart('c-suburb-exp',   exp,   cssvar('accent4'), range);
 }
 function renderStationTable(mountId, stations, highlightColor){
   const mount = document.getElementById(mountId);
